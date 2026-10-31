@@ -1,4 +1,5 @@
-local SMART_FALLBACK=true do local T,S,U=20,2,"https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/KeoirnLite.lua"
+local SMART_FALLBACK=true do
+local T,S,U=20,2,"https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/KeoirnLite.lua"
 if SMART_FALLBACK then local R=game:GetService("RunService")if R:IsClient()then local f,e=0,0 local c=R.RenderStepped:Connect(function(d)f+=1 e+=d end)task.wait(S)c:Disconnect()if(if e>0 then f/e else 60)<T then local ok,r=pcall(function()return loadstring(game:HttpGet(U,true))()end)if ok and r then return r end end end end end
 local a local aa,ab,ac,ad,ae,af,ag,ah,ai,aj,ak,al,am,b,c,d,e,f,g,h,i={function()local b,c,d=a(1)local e return(function(
 ...)local f,g,h,i,j=d(c.utility.variables),d(c.utility.image),d(c.utility.locale),d(c.utility.constants),d(c.types)
