@@ -1,44 +1,9 @@
-name: CI Bypass & Reviewer Assignment
-
+# Consolidated into ci.yml
+name: CI Bypass (Consolidated)
 on:
-  pull_request_target:
-    types: [opened, edited, synchronize, reopened]
-
+  workflow_dispatch:
 jobs:
-  assign-reviewer:
-    name: "Assign zurai02 on ci: bypass"
-    if: startsWith(github.event.pull_request.title, 'ci:') || contains(github.event.pull_request.title, 'ci:')
+  disabled:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Generate GitHub App Token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
-      - name: Request review from zurai02
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ steps.app-token.outputs.token }}
-          script: |
-            const pr = context.payload.pull_request;
-            const reviewer = 'zurai02';
-
-            if (pr.user.login.toLowerCase() === reviewer.toLowerCase()) {
-              console.log(`${reviewer} authored this PR; skipping reviewer request.`);
-              return;
-            }
-
-            try {
-              await github.rest.pulls.requestReviewers({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                reviewers: [reviewer]
-              });
-              console.log(`Successfully assigned ${reviewer} as reviewer.`);
-            } catch (error) {
-              console.warn(`Reviewer request warning: ${error.message}`);
-            }
+      - run: echo 'Consolidated into ci.yml'
