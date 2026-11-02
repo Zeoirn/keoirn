@@ -2,15 +2,15 @@ name: Clanker Honeypot
 
 on:
   pull_request_target:
-    types:
-      - opened
-      - reopened
-      - edited
+    types: [opened, reopened, edited]
+
+permissions: {}
 
 jobs:
   filter-ai-pr:
     name: Filter out AI-generated PRs
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Generate GitHub App Token
@@ -25,15 +25,13 @@ jobs:
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
-            const tag = "(luau-preflight)";
             const pr = context.payload.pull_request;
             const title = (pr.title || "").toLowerCase();
             const bodyText = (pr.body || "").toLowerCase();
+            const hasCanary = title.includes("(luau-preflight)") || bodyText.includes("(luau-preflight)") ||
+                              title.includes("(luau-flight)") || bodyText.includes("(luau-flight)");
 
-            // Catch the canary tag in either the title or the PR description
-            if (!title.includes(tag) && !bodyText.includes(tag)) {
-              return;
-            }
+            if (!hasCanary) return;
 
             console.log(`AI canary tag detected in PR #${pr.number}. Rejecting.`);
 
@@ -64,7 +62,7 @@ jobs:
             } catch (err) {
               console.warn("Could not attach label:", err.message);
             }
-            
+
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
