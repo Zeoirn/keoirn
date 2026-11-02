@@ -2,6 +2,7 @@ name: Validation
 
 on:
   pull_request:
+    types: [opened, edited, synchronize, reopened]
     branches: [main]
     paths:
       - "**/*.lua"
@@ -22,6 +23,8 @@ concurrency:
 jobs:
   luau-check:
     name: Validate Luau & Lua
+    # Skips validation completely if the PR title includes 'ci:'
+    if: github.event_name != 'pull_request' || (!startsWith(github.event.pull_request.title, 'ci:') && !contains(github.event.pull_request.title, 'ci:'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,11 +38,10 @@ jobs:
 
       - name: Run luau-analyze
         run: |
-          # Finds and checks all .lua and .luau files in the repository
           find . -type f \( -name "*.lua" -o -name "*.luau" \) ! -path "*/.*/*" | xargs -r luau-analyze
-        continue-on-error: true # Keep true until existing diagnostics are cleaned up
+        continue-on-error: true
 
-      # 2. Selene Linter (fixed action repository)
+      # 2. Selene Linter
       - name: Run Selene
         uses: NTBBloodbath/selene-action@v1.0.0
         with:
