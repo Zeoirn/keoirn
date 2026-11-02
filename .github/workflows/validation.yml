@@ -23,7 +23,6 @@ concurrency:
 jobs:
   luau-check:
     name: Validate Luau & Lua
-    # Skips validation completely if the PR title includes 'ci:'
     if: github.event_name != 'pull_request' || (!startsWith(github.event.pull_request.title, 'ci:') && !contains(github.event.pull_request.title, 'ci:'))
     runs-on: ubuntu-latest
     steps:
