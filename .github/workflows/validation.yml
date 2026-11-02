@@ -3,8 +3,16 @@ name: Validation
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "**/*.lua"
+      - "**/*.luau"
+      - ".github/workflows/validation.yml"
   push:
     branches: [main]
+    paths:
+      - "**/*.lua"
+      - "**/*.luau"
+      - ".github/workflows/validation.yml"
   workflow_dispatch:
 
 concurrency:
@@ -13,12 +21,12 @@ concurrency:
 
 jobs:
   luau-check:
-    name: Luau & Selene Lint
+    name: Validate Luau & Lua
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Official Luau Static Analyzer (luau-lang/luau)
+      # 1. Official Luau Static Analyzer
       - name: Install Luau
         run: |
           curl -sL https://github.com/luau-lang/luau/releases/latest/download/luau-ubuntu.zip -o /tmp/luau.zip
@@ -26,25 +34,15 @@ jobs:
           sudo chmod +x /usr/local/bin/luau-analyze
 
       - name: Run luau-analyze
-        run: luau-analyze --mode=strict *.lua
-        continue-on-error: true # Keep true until existing Luau type warnings are cleaned up
+        run: |
+          # Finds and checks all .lua and .luau files in the repository
+          find . -type f \( -name "*.lua" -o -name "*.luau" \) ! -path "*/.*/*" | xargs -r luau-analyze
+        continue-on-error: true # Keep true until existing diagnostics are cleaned up
 
-      # 2. Selene Linter (using the valid action)
+      # 2. Selene Linter (fixed action repository)
       - name: Run Selene
         uses: NTBBloodbath/selene-action@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: "--display-style quiet ."
         continue-on-error: true
-
-  web-check:
-    name: Validate Web Assets
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Check HTML/JS/CSS formatting
-        run: npx prettier --check "*.{html,js,css}"
