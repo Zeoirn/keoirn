@@ -1,6 +1,4 @@
 std = "roblox"
 
 [rules]
-incorrect_standard_library_use = "allow"
-multiple_statements = "allow"
-unbalanced_assignments = "allow"
+shadowing = "allow"
