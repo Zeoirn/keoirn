@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - ".prettierrc"
-      - ".prettierrc.json"
+      - ".github/.prettierrc"
+      - ".github/.prettierrc.json"
       - ".github/workflows/prettier.yml"
   schedule:
     - cron: "0 0 * * 0"
@@ -41,7 +41,7 @@ jobs:
           git config --global user.email "${APP_SLUG}[bot]@users.noreply.github.com"
           BRANCH="prettier-$(date +%s)"
           git checkout -b "$BRANCH"
-          npx --yes prettier@latest --write "**/*.{html,js,css,json,md,yml,yaml}"
+          npx --yes prettier@latest --config .github/.prettierrc.json --ignore-path .github/.prettierignore --write "**/*.{html,js,css,json,md,yml,yaml}"
           if git diff --quiet && git diff --cached --quiet; then
             echo "No formatting changes needed."
             exit 0
