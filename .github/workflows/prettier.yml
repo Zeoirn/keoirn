@@ -1,0 +1,57 @@
+name: Prettier
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/.prettierrc"
+      - ".github/.prettierrc.json"
+      - ".github/workflows/prettier.yml"
+      - ".github/workflows/prettier.yaml"
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  prettify:
+    name: Prettify Files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Generate Bot Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID || vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run Prettier and open PR
+        run: |
+          set -euo pipefail
+          git config --global user.name "${APP_SLUG}[bot]"
+          git config --global user.email "${APP_SLUG}[bot]@users.noreply.github.com"
+          BRANCH="prettier-$(date +%s)"
+          git checkout -b "$BRANCH"
+          npx --yes prettier@latest --config .github/.prettierrc.json --ignore-path .github/.prettierignore --write "**/*.{html,js,css,json,md,yml,yaml}"
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No formatting changes needed."
+            exit 0
+          fi
+          git add .
+          COUNT=$(git status -s -uno | wc -l)
+          git commit -m "style: format files with prettier"
+          git push --set-upstream origin "$BRANCH"
+          gh pr create -t "style: format files with prettier" -b "$COUNT file(s) formatted with Prettier."
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
