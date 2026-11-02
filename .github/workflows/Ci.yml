@@ -1,0 +1,174 @@
+name: CI
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "**/*.lua"
+      - "**/*.luau"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-ci
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  ci-bypass:
+    name: CI Bypass & Reviewer Assignment
+    if: github.event_name == "pull_request_target" && contains(github.event.pull_request.title, "ci:")
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Generate Bot Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Assign zurai02 as reviewer
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const pr = context.payload.pull_request;
+            const reviewer = "zurai02";
+
+            if (pr.user.login.toLowerCase() === reviewer.toLowerCase()) {
+              return;
+            }
+
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                reviewers: [reviewer]
+              });
+            } catch (err) {
+              console.warn(err.message);
+            }
+
+  check-template:
+    name: Check PR Template
+    if: github.event_name == "pull_request_target" && !contains(github.event.pull_request.title, "ci:")
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      passed: ${{ steps.validate.outputs.passed }}
+    steps:
+      - name: Generate Bot Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Validate PR Template
+        id: validate
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const pr = context.payload.pull_request;
+            const body = (pr.body || "").trim();
+            const errors = [];
+
+            if (!body || body.length < 20) {
+              errors.push("The pull request description is empty or missing the template.");
+            }
+
+            if (/-\s*\[\s*\]/.test(body)) {
+              errors.push("All checkboxes in the checklist must be completed (`- [x]`). Unchecked boxes were found.");
+            }
+
+            const parts = body.split(/#*\s*What you changed and why it matters\.?/i);
+            if (parts.length > 1 && parts[1].trim().length < 5) {
+              errors.push("Please provide details explaining what you changed under **# What you changed and why it matters.**");
+            }
+
+            if (errors.length > 0) {
+              core.setOutput("passed", "false");
+
+              const rejectionMessage = [
+                "### ❌ Pull Request Rejected: Incomplete Template",
+                "",
+                "Your pull request cannot be reviewed because the submission checklist or template was not completed:",
+                ...errors.map(err => `- ${err}`),
+                "",
+                "Please make sure all checklist items are checked (`- [x]`) and an explanation of your changes is provided. You may reopen or submit an updated PR once completed."
+              ].join("\n");
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: rejectionMessage
+              });
+
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  labels: ["Rejected", "reason: Template_issue", "Template_issue"]
+                });
+              } catch (e) {
+                console.warn(e.message);
+              }
+
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                state: "closed"
+              });
+
+              core.setFailed("PR closed due to incomplete template.");
+            } else {
+              core.setOutput("passed", "true");
+            }
+
+  validate-luau:
+    name: Validate Luau & Lua
+    needs: [check-template]
+    if: |
+      always() &&
+      needs.check-template.outputs.passed == "true" &&
+      !contains(github.event.pull_request.title, "ci:")
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          persist-credentials: false
+
+      - name: Install Luau
+        run: |
+          set -euo pipefail
+          curl -sSfL https://github.com/luau-lang/luau/releases/latest/download/luau-ubuntu.zip -o /tmp/luau.zip
+          sudo unzip -q -o /tmp/luau.zip luau-analyze -d /usr/local/bin/
+          sudo chmod +x /usr/local/bin/luau-analyze
+          rm -f /tmp/luau.zip
+
+      - name: Run luau-analyze
+        run: |
+          set -euo pipefail
+          find . -type f \( -name "*.lua" -o -name "*.luau" \) ! -path "*/.*/*" | xargs -r luau-analyze
+        continue-on-error: true
+
+      - name: Run Selene
+        uses: NTBBloodbath/selene-action@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: "--display-style quiet ."
+        continue-on-error: true
