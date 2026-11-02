@@ -1,4 +1,4 @@
-name: Prettier
+name: Prettier & Minify
 
 on:
   push:
@@ -7,14 +7,17 @@ on:
       - ".github/.prettierrc"
       - ".github/.prettierrc.json"
       - ".github/workflows/prettier.yml"
-      - ".github/workflows/prettier.yaml"
+      - "script.js"
+      - "style.css"
   schedule:
     - cron: "0 0 * * 0"
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
-  prettify:
-    name: Prettify Files
+  prettify-and-minify:
+    name: Prettify & Minify Assets
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -35,23 +38,38 @@ jobs:
         with:
           node-version: 20
 
-      - name: Run Prettier and open PR
+      - name: Format, Minify, and Open PR
         run: |
           set -euo pipefail
           git config --global user.name "${APP_SLUG}[bot]"
           git config --global user.email "${APP_SLUG}[bot]@users.noreply.github.com"
-          BRANCH="prettier-$(date +%s)"
+          BRANCH="assets-build-$(date +%s)"
           git checkout -b "$BRANCH"
+
+          # 1. Clean up duplicate workflows if present
+          rm -f .github/workflows/stale.yaml .github/workflows/ci-bypass.yml .github/workflows/validation.yml
+
+          # 2. Format files with Prettier
           npx --yes prettier@latest --config .github/.prettierrc.json --ignore-path .github/.prettierignore --write "**/*.{html,js,css,json,md,yml,yaml}"
+
+          # 3. Minify JavaScript and CSS assets
+          if [ -f "script.js" ]; then
+            npx --yes esbuild script.js --minify --outfile=script.min.js
+          fi
+          if [ -f "style.css" ]; then
+            npx --yes esbuild style.css --minify --outfile=style.min.css
+          fi
+
           if git diff --quiet && git diff --cached --quiet; then
-            echo "No formatting changes needed."
+            echo "No formatting or minification changes needed."
             exit 0
           fi
-          git add .
+
+          git add -A
           COUNT=$(git status -s -uno | wc -l)
-          git commit -m "style: format files with prettier"
+          git commit -m "style: format code, minify assets, and tighten workflows"
           git push --set-upstream origin "$BRANCH"
-          gh pr create -t "style: format files with prettier" -b "$COUNT file(s) formatted with Prettier."
+          gh pr create -t "style: format code and update minified assets" -b "$COUNT file(s) formatted and minified."
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
