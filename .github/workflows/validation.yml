@@ -13,26 +13,25 @@ concurrency:
 
 jobs:
   luau-check:
-    name: Luau Static Analysis & Lint
+    name: Luau & Selene Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install official Roblox Luau
+      # 1. Official Luau Static Analyzer (luau-lang/luau)
+      - name: Install Luau
         run: |
-          curl -fsSL https://github.com/roblox/luau/releases/latest/download/luau-ubuntu.zip -o luau.zip
-          sudo unzip -o -q luau.zip -d /usr/local/bin
-          sudo chmod +x /usr/local/bin/luau*
-          rm luau.zip
+          curl -sL https://github.com/luau-lang/luau/releases/latest/download/luau-ubuntu.zip -o /tmp/luau.zip
+          sudo unzip -o /tmp/luau.zip luau-analyze -d /usr/local/bin/
+          sudo chmod +x /usr/local/bin/luau-analyze
 
-      - name: Run Luau Analyze
-        run: |
-          echo "Analyzing Luau scripts..."
-          luau-analyze *.lua
-        continue-on-error: true # Keep true until existing warnings in your scripts are resolved
+      - name: Run luau-analyze
+        run: luau-analyze --mode=strict *.lua
+        continue-on-error: true # Keep true until existing Luau type warnings are cleaned up
 
-      - name: Run Selene Linter
-        uses: JohnnyMorganz/selene-action@v1
+      # 2. Selene Linter (using the valid action)
+      - name: Run Selene
+        uses: NTBBloodbath/selene-action@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: "--display-style quiet ."
@@ -43,12 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Check HTML/JS/CSS formatting
         run: npx prettier --check "*.{html,js,css}"
-        continue-on-error: true
