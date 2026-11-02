@@ -1,3 +1,5 @@
 *.lua
 *.luau
 .git
+*.min.js
+*.min.css
