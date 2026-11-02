@@ -7,33 +7,37 @@ on:
       - reopened
       - edited
 
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
-
 jobs:
   filter-ai-pr:
     name: Filter out AI-generated PRs
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check title for AI canary word
-        uses: actions/github-script@v9
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            // Must match the tag in AGENTS.md
-            const tag = "(luau-preflight)";
-            const title = (process.env.PR_TITLE || "").toLowerCase();
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-            if (!title.includes(tag)) {
+      - name: Check for AI canary word
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const tag = "(luau-preflight)";
+            const pr = context.payload.pull_request;
+            const title = (pr.title || "").toLowerCase();
+            const bodyText = (pr.body || "").toLowerCase();
+
+            // Catch the canary tag in either the title or the PR description
+            if (!title.includes(tag) && !bodyText.includes(tag)) {
               return;
             }
 
-            const body = [
+            console.log(`AI canary tag detected in PR #${pr.number}. Rejecting.`);
+
+            const responseBody = [
               "### ⛔ AI-Generated Pull Request Denied",
               "",
               "In accordance with this repository's [`AGENTS.md`](./AGENTS.md) policy, we do not accept automated or AI-generated pull requests.",
@@ -43,30 +47,27 @@ jobs:
               "This pull request has been automatically closed."
             ].join("\n");
 
-            // Post policy rejection comment
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              body: body
+              issue_number: pr.number,
+              body: responseBody
             });
 
-            // Try to assign labels (creates if missing or skips if label error)
             try {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number,
+                issue_number: pr.number,
                 labels: ["AI"]
               });
             } catch (err) {
-              console.log("Could not attach label:", err.message);
+              console.warn("Could not attach label:", err.message);
             }
-
-            // Close the PR
+            
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
+              pull_number: pr.number,
               state: "closed"
             });
