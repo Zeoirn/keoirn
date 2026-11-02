@@ -1,21 +1,15 @@
-name: Prettier
+name: Stale
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".prettierrc"
-      - ".prettierrc.json"
-      - ".github/workflows/prettier.yml"
   schedule:
-    - cron: "0 0 * * 0"
+    - cron: "0 12 * * *"
   workflow_dispatch:
 
 permissions: {}
 
 jobs:
-  prettify:
-    name: Prettify Files
+  stale:
+    name: Stale
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,31 +20,15 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/stale@v9
         with:
-          token: ${{ steps.app-token.outputs.token }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Run Prettier and open PR
-        run: |
-          set -euo pipefail
-          git config --global user.name "${APP_SLUG}[bot]"
-          git config --global user.email "${APP_SLUG}[bot]@users.noreply.github.com"
-          BRANCH="prettier-$(date +%s)"
-          git checkout -b "$BRANCH"
-          npx --yes prettier@latest --write "**/*.{html,js,css,json,md,yml,yaml}"
-          if git diff --quiet && git diff --cached --quiet; then
-            echo "No formatting changes needed."
-            exit 0
-          fi
-          git add .
-          COUNT=$(git status -s -uno | wc -l)
-          git commit -m "style: format files with prettier"
-          git push --set-upstream origin "$BRANCH"
-          gh pr create -t "style: format files with prettier" -b "$COUNT file(s) formatted with Prettier."
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          repo-token: ${{ steps.app-token.outputs.token }}
+          days-before-issue-stale: 30
+          days-before-pr-stale: 14
+          days-before-close: 7
+          stale-issue-message: "This issue has been marked as stale due to 30 days of inactivity. It will be closed in 7 days if no further activity occurs. Comment on this issue to keep it open."
+          stale-pr-message: "This pull request has been marked as stale due to 14 days of inactivity. It will be closed in 7 days if no further activity occurs. Comment on this PR to keep it open."
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          exempt-issue-labels: "no-stale,pinned,security"
+          exempt-pr-labels: "no-stale,pinned,security"
