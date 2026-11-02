@@ -6,7 +6,7 @@ on:
 
 jobs:
   assign-reviewer:
-    name: Assign zurai02 on ci: bypass
+    name: "Assign zurai02 on ci: bypass"
     if: startsWith(github.event.pull_request.title, 'ci:') || contains(github.event.pull_request.title, 'ci:')
     runs-on: ubuntu-latest
 
