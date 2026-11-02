@@ -1,0 +1,54 @@
+name: Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-validation
+  cancel-in-progress: true
+
+jobs:
+  luau-check:
+    name: Luau Static Analysis & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install official Roblox Luau
+        run: |
+          curl -fsSL https://github.com/roblox/luau/releases/latest/download/luau-ubuntu.zip -o luau.zip
+          sudo unzip -o -q luau.zip -d /usr/local/bin
+          sudo chmod +x /usr/local/bin/luau*
+          rm luau.zip
+
+      - name: Run Luau Analyze
+        run: |
+          echo "Analyzing Luau scripts..."
+          luau-analyze *.lua
+        continue-on-error: true # Keep true until existing warnings in your scripts are resolved
+
+      - name: Run Selene Linter
+        uses: JohnnyMorganz/selene-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: "--display-style quiet ."
+        continue-on-error: true
+
+  web-check:
+    name: Validate Web Assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check HTML/JS/CSS formatting
+        run: npx prettier --check "*.{html,js,css}"
+        continue-on-error: true
