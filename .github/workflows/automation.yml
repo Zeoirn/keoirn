@@ -6,7 +6,10 @@ on:
 
 jobs:
   welcome-comment:
-    if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+    if: >
+      github.event_name == 'pull_request_target' && 
+      github.event.action == 'opened' && 
+      !contains(github.event.pull_request.title, '(luau-preflight)')
     runs-on: ubuntu-latest
     steps:
       - name: Generate GitHub App Token
@@ -46,12 +49,21 @@ jobs:
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
-            await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              merge_method: "squash"
-            });
+            try {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                merge_method: "squash"
+              });
+            } catch (error) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `⚠️ **Could not auto-merge:** ${error.message}\n\nPlease check for merge conflicts or failing status checks.`
+              });
+            }
 
       # Triggered when 'invalid' or 'invalid: reason' label is added -> closes PR
       - name: Close on invalid
