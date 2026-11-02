@@ -9,20 +9,23 @@ jobs:
     name: Assign zurai02 on ci: bypass
     if: startsWith(github.event.pull_request.title, 'ci:') || contains(github.event.pull_request.title, 'ci:')
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
 
     steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Request review from zurai02
         uses: actions/github-script@v7
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const pr = context.payload.pull_request;
             const reviewer = 'zurai02';
 
-            console.log(`Detected 'ci:' in PR #${pr.number} title: "${pr.title}"`);
-
-            // Skip review request if zurai02 is the author
             if (pr.user.login.toLowerCase() === reviewer.toLowerCase()) {
               console.log(`${reviewer} authored this PR; skipping reviewer request.`);
               return;
