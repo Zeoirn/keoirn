@@ -1,14 +1,3 @@
---[[
-    ╔══════════════════════════════════════════════════════╗
-    ║            KEOIRN GEN 2 — Enhanced Edition          ║
-    ║   Full Gen2 Engine + Keoirn Custom Enhancements     ║
-    ╚══════════════════════════════════════════════════════╝
-]]
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 1 : EMBEDDED GEN2 CORE ENGINE
--- ──────────────────────────────────────────────────────────────────
-local Gen2Core = (function()
 -- Rayfield Gen2 v1.2.0
 -- loadstring(game:HttpGet("https://sirius.menu/gen2"))()
 --
@@ -34,14 +23,32 @@ Toggle export type Slider=j.Slider export type Dropdown=j.Dropdown export type I
 Keybind export type ColorPicker=j.ColorPicker export type Stat=j.Stat export type Progress=j.Progress export type
 Console=j.Console export type Section=j.Section export type TabSection=j.TabSection export type Text=j.Text export type
 Divider=j.Divider export type Tag=j.Tag export type Popup=j.Popup export type Rayfield=j.Rayfield type WindowModule={new
-:(j.WindowProps)->j.Window}local k={}::Rayfield local function l()local m=Instance.new'ScreenGui'm.Name=f.httpService:
+:(j.WindowProps)->j.Window}local k={}::Rayfield
+k._windows = setmetatable({}, {__mode = "v"})
+k.Version = "1.2.0-gen2"
+function k.Destroy()
+    for _, win in ipairs(k._windows) do
+        if win and not win.unloaded then
+            pcall(function() win:Unload() end)
+        end
+    end
+    table.clear(k._windows)
+end
+ local function l()local m=Instance.new'ScreenGui'm.Name=f.httpService:
 GenerateGUID(false)m.ClipToDeviceSafeArea=false m.DisplayOrder=i.displayOrder.banner m.IgnoreGuiInset=true m.
 ResetOnSpawn=false m.Enabled=true m.SafeAreaCompatibility=Enum.SafeAreaCompatibility.None m.ScreenInsets=Enum.
 ScreenInsets.DeviceSafeInsets m.ZIndexBehavior=Enum.ZIndexBehavior.Sibling m.Parent=f.guiContainer local n=Instance.new
 'ImageLabel'n.Name='Banner'n.AnchorPoint=Vector2.new(0.5,0.5)n.BackgroundColor3=Color3.fromRGB(255,255,255)n.
 BackgroundTransparency=1 n.BorderColor3=Color3.fromRGB(0,0,0)n.BorderSizePixel=0 n.Image=g.resolve(i.icons.banner)n.
-Position=UDim2.fromScale(0.5,0.5)n.Size=UDim2.fromOffset(262,60)n.Parent=m return m end function k.CreateWindow(m,n:j.
-WindowProps):j.Window local o,p:j.Window?,q:(()->())?=(l())if f.secureMode then g.preload(function(r)if r<=0 then return
+Position=UDim2.fromScale(0.5,0.5)n.Size=UDim2.fromOffset(262,60)n.Parent=m return m end function k.CreateWindow(m, n: j.WindowProps): j.Window
+local actualProps = if typeof(n) == 'table' then n elseif typeof(m) == 'table' then m else {}
+if actualProps.SubTitle and not actualProps.Subtitle then actualProps.Subtitle = actualProps.SubTitle end
+if actualProps.subTitle and not actualProps.Subtitle then actualProps.Subtitle = actualProps.subTitle end
+if (actualProps.ConfigFolder or actualProps.configFolder) and not actualProps.configuration and not actualProps.Configuration then
+    actualProps.configuration = { autoSave = true, customFolder = actualProps.ConfigFolder or actualProps.configFolder }
+end
+n = actualProps
+local o,p:j.Window?,q:(()->())?=(l())if f.secureMode then g.preload(function(r)if r<=0 then return
 end local function s()if not p or p.unloaded then return end p:Notify{title=h.resolve'Secure mode',content=if r==1 then
 h.resolve"An asset couldn't be cached and won't appear."else h.resolve"Some assets couldn't be cached and won't appear."
 }end if p then s()else q=s end end)end local r,s=pcall(function()return(d(c.components.window)::WindowModule).new(n)end)
@@ -49,12 +56,17 @@ if not r then o:Destroy()error(s,0)end local t=s::j.Window p=t if q then task.sp
 task.spawn(function()local u,v=f.fontManager:loadFont(i.fontAsset,Enum.FontWeight.Medium),f.fontManager:loadFont(i.
 fontAsset,Enum.FontWeight.SemiBold)if not t.unloaded and u and v and u~=f.fallbackFont and v~=f.fallbackFont then t:
 ChangeTheme{Font=u,TitleFont=v}end end)end task.spawn(function()task.wait(0.5)o:Destroy()task.wait(0.5)if not t.unloaded
-then t:Show()end end)return t end return k end)()end,[3]=function()local b,c,d=a(3)local e return(function(...)local f={
+then t:Show()end end)table.insert(k._windows, t) return t end return k end)()end,[3]=function()local b,c,d=a(3)local e return(function(...)local f={
 }f.__index=f f.__type='Action'local g=c.Parent.Parent.utility local h,i,j=d(g.variables),d(g.log),d(g.HapticEngine)
 function f.new(k,l)l=if typeof(l)=='table'then l else{}local m=setmetatable({window=assert(k,
 'Missing argument #1 (Window expected)'),name=l.name or l.Name or'Action',icon=assert(l.icon or l.Icon,
 'Missing argument (Icon expected)'),callback=assert(l.callback or l.Callback,'Missing argument (Function expected)'),
-linkedTab=l.linkedTab or l.LinkedTab},f)m.action=m.window:Create('Frame',{Name=m.name,BorderSizePixel=0,LayoutOrder=-(l.
+linkedTab=l.linkedTab or l.LinkedTab,tooltip=l.tooltip or l.Tooltip},f)
+if m.tooltip then
+    m.tooltipLabel=m.window:Create('TextLabel',{Text=m.tooltip,Size=UDim2.fromOffset(0,20),AutomaticSize=Enum.AutomaticSize.X,BackgroundColor3=Color3.fromRGB(30,30,30),BackgroundTransparency=0.1,BorderSizePixel=0,TextSize=13,TextColor3=Color3.fromRGB(255,255,255),AnchorPoint=Vector2.new(0.5,1),Position=UDim2.new(0.5,0,0,-4),ZIndex=100,Visible=false,Parent=m.action})
+    m.window:Create('UICorner',{CornerRadius=UDim.new(0,4),Parent=m.tooltipLabel})
+    m.window:Create('UIPadding',{PaddingLeft=UDim.new(0,6),PaddingRight=UDim.new(0,6),Parent=m.tooltipLabel})
+endm.action=m.window:Create('Frame',{Name=m.name,BorderSizePixel=0,LayoutOrder=-(l.
 order or 0),Size=UDim2.fromOffset(24,24),BackgroundTransparency=1,Parent=m.window.actionContainer})m.iconLabel=m.window:
 Create('ImageLabel',{Image=m.icon,Size=UDim2.fromOffset(20,20),BorderSizePixel=0,AnchorPoint=Vector2.new(0.5,0.5),
 Position=UDim2.fromScale(0.5,0.5),BackgroundTransparency=1,ImageTransparency=1,Parent=m.action},{ImageColor3=
@@ -64,17 +76,32 @@ BorderSizePixel=0,Position=UDim2.fromScale(0.5,0.5),AnchorPoint=Vector2.new(0.5,
 return end if m.isLit and m:isLit()then return end h.tweenService:Create(m.iconLabel,TweenInfo.new(0.25,Enum.EasingStyle
 .Quint,Enum.EasingDirection.Out),{ImageTransparency=0.6}):Play()end m.window:Connect(m.interact.MouseButton1Click,
 function()j.click()task.spawn(function()local o,p=pcall(m.callback)if not o then i.warn(`Keoirn encountered an error, with the callback for a {
-m.__type} component named '{m.name}':`)i.print(p)end n()end)end)m.window:Connect(m.interact.MouseEnter,function()if not
-m.window:_interactive()then return end h.tweenService:Create(m.iconLabel,TweenInfo.new(0.25,Enum.EasingStyle.Quint,Enum.
-EasingDirection.Out),{ImageTransparency=0.2}):Play()end)m.window:Connect(m.interact.MouseLeave,n)return m end return f
+m.__type} component named '{m.name}':`)i.print(p)end n()end)end)m.window:Connect(m.interact.MouseEnter,function()if not m.window:_interactive()then return end if m.tooltipLabel then m.tooltipLabel.Visible=true end h.tweenService:Create(m.iconLabel,TweenInfo.new(0.25,Enum.EasingStyle.Quint,Enum.
+EasingDirection.Out),{ImageTransparency=0.2}):Play()end)m.window:Connect(m.interact.MouseLeave,function()if m.tooltipLabel then m.tooltipLabel.Visible=false end n()end)return m end return f
 end)()end,[4]=function()local b,c,d=a(4)local e return(function(...)local f={}f.__index=f f.__type='Button'local g=c.
 Parent.Parent.utility local h,i,j,k,l,m=d(g.variables),d(g.functions),d(g.moveable),d(g.lockable),d(g.locale),d(g.
 HapticEngine)function f.new(n,o)o=if typeof(o)=='table'then o else{}local p=setmetatable({tab=assert(n,
 'Missing argument #1 (Tab expected)'),window=n.window,name=o.name or o.Name or'Button',icon=o.icon or o.Icon,description
-=o.description or o.Description,compact=n.compact or false,callback=o.callback or o.Callback or function()end},f)if p.
+=o.description or o.Description,compact=n.compact or false,callback=o.callback or o.Callback or function()end,disabled=o.disabled or o.Disabled or false,cooldown=o.cooldown or o.Cooldown or 0,_onCooldown=false},f)
+function p:SetDisabled(state)
+    p.disabled = state
+    if p.main then p.main.BackgroundTransparency = state and 0.6 or (p.window.theme.ElementTransparency or 0) end
+    if p.title then p.title.TextTransparency = state and 0.6 or 0 end
+end
+if p.disabled then p:SetDisabled(true) endif p.
 compact then p:_buildCompact()else p:_buildFull()end if p.description and not p.compact then p.descriptor=d(c.Parent.
-descriptor).new(p.tab,{description=p.description})end return p end function f._runCallback(n)n.window:_runGuarded(n,n.
-callback)end function f._buildFull(n)n.main=n.window:Create('Frame',{Size=UDim2.new(1,-20,0,43),BorderSizePixel=0,Name=n
+descriptor).new(p.tab,{description=p.description})end return p end function f._runCallback(n)
+    if n.disabled or n._onCooldown then return end
+    if n.cooldown and n.cooldown > 0 then
+        n._onCooldown = true
+        n:SetDisabled(true)
+        task.delay(n.cooldown, function()
+            n._onCooldown = false
+            n:SetDisabled(false)
+        end)
+    end
+    n.window:_runGuarded(n, n.callback)
+end function f._buildFull(n)n.main=n.window:Create('Frame',{Size=UDim2.new(1,-20,0,43),BorderSizePixel=0,Name=n
 .name,BackgroundColor3=Color3.fromRGB(255,255,255),BackgroundTransparency=1,Parent=n.tab.tabPage},{
 BackgroundTransparency='ElementTransparency'})n.stroke=n.window:StyleElementBody(n.main)n.hoverOverlay=n.window:
 CreateHoverOverlay(n.main)n.container=n.window:Create('Frame',{BorderSizePixel=0,Parent=n.main,Size=UDim2.new(0,170,0,16
@@ -683,7 +710,7 @@ window:Create('UIFlexItem',{FlexMode=Enum.UIFlexMode.Fill,Parent=i.main})end i.t
 'UIListLayout',{FillDirection=h,SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,ai),VerticalAlignment=if g then
 Enum.VerticalAlignment.Center else Enum.VerticalAlignment.Top,HorizontalAlignment=if g then Enum.HorizontalAlignment.
 Left else Enum.HorizontalAlignment.Center,Parent=i.main})return i end function ae._add(c,d,e)if c.compact and not b[d]
-then ag.warn(`Keoirn: a row only holds compact elements (button/toggle/stat/slider), ignoring '{d}'. Use a column for it.`
+then ag.warn(`Rayfield: a row only holds compact elements (button/toggle/stat/slider), ignoring '{d}'. Use a column for it.`
 )return nil end local f=ac(ab.Parent[d]).new(c,e)table.insert(c.elements,f)ah(f,#c.elements*10)c.window:_restoreLate(f)
 if c.compact then c:_wrapChild(f)end c:_reflowRow()if not c.window.hidden then f:_setShown(true,true)end return f end
 function ae._reflowRow(c)if c.direction~=Enum.FillDirection.Horizontal then return end local d=#c.elements>0 for e,f in
@@ -691,7 +718,8 @@ c.elements do if f.__type~='Group'then d=false break end end c.layout.Padding=if
 ai)end function ae._wrapChild(c,d)c.layout.Wraps=true c.layout.HorizontalFlex=Enum.UIFlexAlignment.Fill d._widthManaged=
 true local e=if d._minWidth then d:_minWidth()else 0 if e>0 then d.main.AutomaticSize=Enum.AutomaticSize.None d.main.
 Size=UDim2.new(0,e,d.main.Size.Y.Scale,d.main.Size.Y.Offset)end end function ae.CreateButton(c,d)return c:_add('button',
-d)end function ae.CreateToggle(c,d)return c:_add('toggle',d)end function ae.CreateSwitch(c,d)return c:_add('toggle',d)
+d)end function ae.CreateSwitch(c,d) return c:CreateToggle(d) end
+function ae.CreateToggle(c,d)return c:_add('toggle',d)end function ae.CreateSwitch(c,d)return c:_add('toggle',d)
 end function ae.CreateStat(c,d)return c:_add('stat',d)end function ae.CreateSlider(c,d)return c:_add('slider',d)end
 function ae.CreateDropdown(c,d)return c:_add('dropdown',d)end function ae.CreateSection(c,d)return c:_add('section',d)
 end function ae.CreateText(c,d)return c:_add('text',d)end function ae.CreateDivider(c,d)return c:_add('divider',d)end
@@ -811,8 +839,8 @@ p~=Enum.KeyCode.Unknown then s.KeyCode==p else s.UserInputType==q if not t then 
 =table.find(m.connections,r)if u then table.remove(m.connections,u)end end m.window:Disconnect(r)if m._holdPress==o then
 m._holdPress=nil end if m._holding then m._holding=false m.window:_runGuarded(m,m.callback,false)end end)end function ae
 .Set(m,n,o)local p=l(n)if p~=Enum.KeyCode.Unknown then if m.isMenuToggle then local q=m.window:_keybindUsing(p,m)if q
-then g.warn('Keoirn: '..k(p).." is bound to '"..tostring(q.name).."'; kept "..k(m.value))return end elseif p==m.window
-.settings.toggleKeybind then g.warn('Keoirn: '..k(p)..' is the menu toggle key; kept '..k(m.value))return end end m.
+then g.warn('Rayfield: '..k(p).." is bound to '"..tostring(q.name).."'; kept "..k(m.value))return end elseif p==m.window
+.settings.toggleKeybind then g.warn('Rayfield: '..k(p)..' is the menu toggle key; kept '..k(m.value))return end end m.
 value=p if m.recording then m:_stopRecording()else m.keyLabel.Text=k(m.value)m:_sizeBox(true)end if not o then m.window:
 _runGuarded(m,m.onChanged,m.value)m.window:_persist(m)end end function ae._serialize(m)return{tostring(m.value.EnumType)
 ,m.value.Value}end function ae._deserialize(m,n)local o=tostring(n[1]):gsub('^Enum%.','')local p,q=pcall(function()
@@ -973,7 +1001,7 @@ EasingStyle.Quint,Enum.EasingDirection.Out)table.insert(N._connections,R:Connect
 then return end ag.tweenService:Create(Z,ak,{BackgroundColor3=W}):Play()end))table.insert(N._connections,R:Connect(aj.
 MouseLeave,function()ag.tweenService:Create(Z,ak,{BackgroundColor3=V}):Play()end))table.insert(N._connections,R:Connect(
 aj.MouseButton1Click,function()if N._closed then return end d.click()ag.tweenService:Create(_,ak,{Transparency=1}):Play(
-)if U then task.spawn(function()local al,am=pcall(U)if not al then c.warn("Keoirn: popup button '"..T..
+)if U then task.spawn(function()local al,am=pcall(U)if not al then c.warn("Rayfield: popup button '"..T..
 "' callback errored:")c.print(am)end end)end N:Close()end))end function ae._measureHeader(aj,ak)local al=n-(if ak then r
 +s else 0)aj._titleH=ah.textHeight(aj.window.theme.Font,o,b.resolve(aj.title),al)aj._subH=if aj.subtitle and aj.subtitle
 ~=''then ah.textHeight(aj.window.theme.Font,p,b.resolve(aj.subtitle),al)else 0 aj._columnH=aj._titleH+(if aj._subH>0
@@ -1291,7 +1319,7 @@ elseif k.NumberEasing~=nil then k.NumberEasing else true,changeMode=k.changeMode
 changeBaseline=k.changeBaseline or k.ChangeBaseline or'previous',prefix=k.prefix or k.Prefix or'',suffix=k.suffix or k.
 Suffix or'',compact=k.compact or k.Compact or j.compact or false,display=(k.display or k.Display or'value'),
 _initialValue=if(k.value or k.Value)~=nil then(k.value or k.Value)else nil,_lastChange=0},ae)if l.compact then l:
-_buildCompact()else l:_buildFull()end if l.description then if l.compact then am.warn(`Keoirn: a compact stat has no room for a description, ignoring it on '{
+_buildCompact()else l:_buildFull()end if l.description then if l.compact then am.warn(`Rayfield: a compact stat has no room for a description, ignoring it on '{
 l.name}'.`)else l.descriptor=ac(ab.Parent.descriptor).new(l.tab,{description=l.description})end end return l end
 function ae._buildFull(j)local k=j.window j.main=k:Create('Frame',{Size=UDim2.new(1,-20,0,90),BorderSizePixel=0,Name=j.
 name,ZIndex=5,BackgroundTransparency=1,Parent=j.tab.tabPage},{BackgroundColor3='StatBackground',BackgroundTransparency=
@@ -1434,7 +1462,7 @@ ab.Parent.Parent.utility.log),20,6,3 local function ak(al)for am,b in al.tabs do
 true end end return#al.tabSections>0 end function ae.new(al,am)am=if typeof(am)=='table'then am else{}local b=
 setmetatable({window=assert(al,'Missing argument #1 (Window expected)'),name=am.name or am.Name or'Section',icon=am.icon
 or am.Icon},ae)if al.layout.mode~='sidebar'then if not al._warnedTabSection then al._warnedTabSection=true ag.warn
-[[Keoirn: Window:CreateSection needs the sidebar layout; it does nothing on the top strip.]]end b.inert=true return b
+[[Rayfield: Window:CreateSection needs the sidebar layout; it does nothing on the top strip.]]end b.inert=true return b
 end b.main=al:Create('Frame',{Name=b.name,Size=UDim2.new(1,-ah*2,0,0),AutomaticSize=Enum.AutomaticSize.Y,
 BackgroundTransparency=1,BorderSizePixel=0,Visible=false,Parent=al.tabList})b.padding=al:Create('UIPadding',{PaddingTop=
 UDim.new(0,if ak(al)then ai else 0),PaddingBottom=UDim.new(0,aj),Parent=b.main})al:Create('UIListLayout',{FillDirection=
@@ -1731,15 +1759,15 @@ local I=C(G.ElementGradient)if H.ElementStroke==nil then G.ElementStroke=E(I,0.2
 then G.ElementStrokeGradient=ColorSequence.new(E(I,0.4))end if H.ElementStrokeHover==nil then G.ElementStrokeHover=E(I,
 0.52)end end if H.TabBackground and H.TabStroke==nil then G.TabStroke=ColorSequence.new(E(C(G.TabBackground),0.4))end
 end local function G(H)if typeof(H)=='table'then return H elseif typeof(H)=='string'then local I=g:FindFirstChild(string
-.lower(H))if I then return ac(I)end ak.warn("Keoirn: unknown theme '"..H.."', using default")elseif H~=nil then ak.
-warn[[Keoirn: invalid theme (expected a built-in name or a theme table), using default]]end return ac(g.default)end
+.lower(H))if I then return ac(I)end ak.warn("Rayfield: unknown theme '"..H.."', using default")elseif H~=nil then ak.
+warn[[Rayfield: invalid theme (expected a built-in name or a theme table), using default]]end return ac(g.default)end
 local function H(I)local J,K=table.clone(ac(g.default)),G(I)for L,M in K do J[L]=B(L,M)end if typeof(I)=='table'then F(J
 ,K)end local L=if typeof(I)=='table'then I else nil if not(L and(L.Font or L.font))then J.Font=f.brandFont(Enum.
 FontWeight.Medium)end if not(L and(L.TitleFont or L.titleFont))then J.TitleFont=f.brandFont(Enum.FontWeight.SemiBold)end
 return J end function h.new(I)I=if typeof(I)=='table'then I else{}if I.translations or I.Translations then aj.register(I
 .translations or I.Translations)end if I.translator or I.Translator then aj.translator=I.translator or I.Translator end
 aj.setActive(I.locale or I.Locale or aj.detect())local J=I.fallbackFont or I.FallbackFont if J then f.setFallbackFont(J)
-end local K=z(I.sidebarLayout or I.SidebarLayout)local L=setmetatable({name=I.name or I.Name or'Rayfield Window',
+end local K=z(I.sidebarLayout or I.SidebarLayout)local L=setmetatable({name=I.name or I.Name or'Keoirn Window',
 subheading=I.subtitle or I.Subtitle,layout=K,size=w(K.mode),instances={},connections={},icon=I.icon or I.Icon,showName=I
 .showName or I.ShowName or'Keoirn',showIcon=I.showIcon or I.ShowIcon or ai.icons.rayfield,showIconOnly=I.showIconOnly
 or I.ShowIconOnly or false,profileText=I.profile or I.Profile,themeProperties={},localeProperties={},tabs={},tabSections
@@ -1803,7 +1831,7 @@ PaddingRight=UDim.new(0,10),Parent=L.tabList})end L.actionContainer=L:Create('Fr
 AutomaticSize=Enum.AutomaticSize.X,Size=UDim2.fromOffset(0,24),Position=UDim2.new(1,-20,0.5,0),BackgroundTransparency=1,
 Parent=L.topbar})L.actionsListLayout=L:Create('UIListLayout',{Padding=UDim.new(0,5),FillDirection=Enum.FillDirection.
 Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,HorizontalAlignment=Enum.HorizontalAlignment.Right,SortOrder=
-Enum.SortOrder.LayoutOrder,Parent=L.actionContainer})L.rfSettings=L:CreateTab{name='Keoirn Settings',customOrder=1000,
+Enum.SortOrder.LayoutOrder,Parent=L.actionContainer})L.rfSettings=L:CreateTab{name='Settings',customOrder=1000,
 neglectSelector=true,forgetState=true}ac(ab.Parent.action).new(L,{name='Close',icon=ai.icons.close,order=1,callback=
 function()L:ToggleHide()end})L.minimiseAction=ac(ab.Parent.action).new(L,{name='Minimise',icon=ai.icons.minimise,order=2
 ,callback=function()L:ToggleMinimise()end})L.settingsAction=ac(ab.Parent.action).new(L,{name='Settings',icon=ai.icons.
@@ -1823,7 +1851,25 @@ in I.themeProperties do for N,O in M do local P=if typeof(O)=='table'then O[2](I
 )=='Color3'or typeof(P)=='number'then f.tweenService:Create(L,TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.
 EasingDirection.Out),{[N]=P}):Play()else L[N]=P end end end if I.hidden then I._themeRefreshPending=true else I:
 _refreshElementThemes()end I:_syncLiveAnimation()end function h._refreshElementThemes(I)for J,K in I.tabs do for L,M in
-K.elements do if M._refreshTheme then M:_refreshTheme()end end end end function h.CreateTab(I,J)assert(not I.unloaded,
+K.elements do if M._refreshTheme then M:_refreshTheme()end end end end function h.CreateAction(I, J)
+    assert(not I.unloaded, 'Cannot create an action on an unloaded window.')
+    return ac(ab.Parent.action).new(I, J)
+end
+function h.GetFlags(I)
+    local res = {}
+    if I.controls then
+        for k, v in pairs(I.controls) do
+            if v and v.value ~= nil then res[k] = v.value end
+        end
+    end
+    return res
+end
+function h.GetFlag(I, flag)
+    if I.controls and I.controls[flag] then return I.controls[flag].value end
+    if I.Flags then return I.Flags[flag] end
+    return nil
+end
+function h.CreateTab(I,J)assert(not I.unloaded,
 'Cannot create a tab on an unloaded window.')local K=ac(ab.Parent.tab).new(I,J)table.insert(I.tabs,K)if not K.
 neglectSelector then local L=true for M,N in I.tabs do if N~=K and not N.neglectSelector then L=false break end end if L
 then K:Select(true)end if not I.hidden and not I.minimised then K.topbarItem.Visible=true K:_applyVisual(if I.
@@ -1835,7 +1881,7 @@ function h._setTabSectionsShown(I,J,K)for L,M in I.tabSections do M:_setShown(J,
 _setTabSectionsVisible(I,J)for K,L in I.tabSections do L:_setVisible(J)end end function h.CreateTag(I,J)assert(not I.
 unloaded,'Cannot create a tag on an unloaded window.')local K=ac(ab.Parent.tag).new(I,J)table.insert(I.tags,K)return K
 end function h._registerControl(I,J)if not J.flag or J.flag==''or J.forgetState then return end local K=J.flag if I.
-controls[K]then local L=2 while I.controls[K..L]do L+=1 end K=K..L ak.warn("Keoirn: duplicate config flag '"..J.flag..
+controls[K]then local L=2 while I.controls[K..L]do L+=1 end K=K..L ak.warn("Rayfield: duplicate config flag '"..J.flag..
 "', saving this one as '"..K.."'. Set a unique flag to keep it stable across sessions.")end J.flag=K I.controls[K]=J
 return K end function h._restoreLate(I,J)if not I._loadedConfig or not J.flag or J.forgetState then return end local K=I
 ._loading I._loading=true ah.applyTo(J,I._loadedConfig[J.flag])I._loading=K end function h._persist(I,J)if J.flag and
@@ -1986,7 +2032,7 @@ M.AbsolutePosition.Y local O,P,Q=N+M.AbsoluteWindowSize.Y,math.floor(K/J),0 for 
 main.AbsolutePosition.Y local U=(T+S.main.AbsoluteSize.Y)>N and T<O if U then S:_setShown(true,true)Q+=1 if Q<=P then
 task.wait(J)end else S:_setShown(true,false)end end end function h.Show(I)if I.animating or not I.hidden then return end
 I.animating=true I._revealing=true if I.configuration.autoLoad and not I._autoLoaded then I._autoLoaded=true local J,K=
-pcall(I.Load,I)if not J then ak.warn('Keoirn: Failed to load configuration - '..tostring(K))end end I.hidden=false I.
+pcall(I.Load,I)if not J then ak.warn('Rayfield: Failed to load configuration - '..tostring(K))end end I.hidden=false I.
 minimised=false if I._themeRefreshPending then I._themeRefreshPending=false I:_refreshElementThemes()end I.
 collapsedInteract.Visible=false if I._freeMouse then I._freeMouse()end if I.hasShownOnce then I:_quickRestore()else I.
 hasShownOnce=true I:_firstShow()end end function h._quickRestore(I)local J=I:_clampedPosition(I._restorePosition or
@@ -2104,7 +2150,8 @@ for P=#N,O+1,-1 do N[P]=nil end end M(I.connections)if J and J~=I then M(J.conne
 DestroySubtrees(I,J)if not J or#J==0 then return end local K={}for L,M in J do K[M]=true for N,O in M:GetDescendants()do
 K[O]=true end end local L=0 for M=1,#I.instances do local N=I.instances[M]if K[N]then I.themeProperties[N]=nil I.
 localeProperties[N]=nil else L+=1 I.instances[L]=N end end for M=#I.instances,L+1,-1 do I.instances[M]=nil end for M,N
-in J do N:Destroy()end end function h.Unload(I)I.unloaded=true al.teardown()al.releaseContainer(I.screenGui)if I.
+in J do N:Destroy()end end h.Destroy=function(I) return I:Unload() end
+function h.Unload(I)I.unloaded=true al.teardown()al.releaseContainer(I.screenGui)if I.
 _liveTween then I._liveTween:Cancel()I._liveTween=nil end for J=#I.connections,1,-1 do I.connections[J]:Disconnect()end
 for J=#I.instances,1,-1 do I.instances[J]:Destroy()end table.clear(I.connections)table.clear(I.instances)table.clear(I.
 themeProperties)table.clear(I.localeProperties)table.clear(I.controls)table.clear(I.tabs)end return h end)()end,[32]=
@@ -2321,7 +2368,7 @@ ae.contrastText(af:Color3):Color3 local ag=0.299*af.R+0.587*af.G+0.114*af.B retu
 ...)local ae={}ae.fontAsset='rbxassetid://12187365364'ae.pillResizeInfo=TweenInfo.new(0.4,Enum.EasingStyle.Exponential,
 Enum.EasingDirection.Out)ae.icons={close=83277910885129,minimise=108115485663409,maximise=88738500661569,settings=
 129180860773723,search=100604009889706,chevron=88479147175134,check=125626312718314,dot=91452555903853,colorpicker=
-91452555903853,banner=111263549366178,config=125823673784681,keoirn=80387863064905}ae.accent={on=Color3.fromRGB(23,153
+91452555903853,banner=111263549366178,config=125823673784681,rayfield=80387863064905}ae.accent={on=Color3.fromRGB(23,153
 ,110),onStroke=Color3.fromRGB(32,201,144)}ae.statAccents={positive={fill=ColorSequence.new(Color3.fromRGB(0,170,127),
 Color3.fromRGB(0,134,98)),stroke=ColorSequence.new(Color3.fromRGB(0,213,156),Color3.fromRGB(0,189,135))},negative={fill=
 ColorSequence.new(Color3.fromRGB(172,47,47),Color3.fromRGB(135,37,37)),stroke=ColorSequence.new(Color3.fromRGB(255,75,75
@@ -2366,7 +2413,7 @@ isfile(ai)then af.readfile(ai)else nil af.writefile(ai,if ak then ak..aj else aj
 string)if not af.isfolder(ai)then af.makefolder(ai)end end function af.ensureDir(ai:string)local aj=''for ak in string.
 gmatch(ai,'[^/]+')do aj=if aj==''then ak else aj..'/'..ak if not af.isfolder(aj)then af.makefolder(aj)end end end return
 af end)()end,[46]=function()local aa,ab,ac=a(46)local ad return(function(...)local ae,af,ag,ah=ac(ab.Parent.filesystem),
-ac(ab.Parent.path),'Keoirn',{}ah.__index=ah export type FileSystemManager={root:string,assets:string,getPath:(self:
+ac(ab.Parent.path),'Rayfield',{}ah.__index=ah export type FileSystemManager={root:string,assets:string,getPath:(self:
 FileSystemManager,subpath:string?)->string,getAssetsFolder:(self:FileSystemManager,subfolder:string?)->string,
 getRootFolder:(self:FileSystemManager)->string}function ah.new(ai:string?):FileSystemManager local aj=ai or ag local ak=
 setmetatable({root=aj,assets=aj..'/Assets'},ah)::any pcall(ae.ensureFolder,ak.root)pcall(ae.ensureFolder,ak.assets)
@@ -2529,7 +2576,7 @@ unknown):any if type(aj)~='string'then return aj end if ag.translator then local
 ak[aj]end local al=ag.strings[ai(ag.current)]if al and al[aj]then return al[aj]end return aj end function ag.register(aj
 :TranslationTables?)if type(aj)~='table'then return end for ak,al in aj do if type(ak)=='string'and type(al)=='table'
 then ak=string.lower(ak)local am=ag.strings[ak]if not am then am={}ag.strings[ak]=am end for b,c in al do if type(b)==
-'string'and type(c)=='string'then am[b]=c else af.warn(`Keoirn: skipping a '{ak}' translation, entries must be string to string.`
+'string'and type(c)=='string'then am[b]=c else af.warn(`Rayfield: skipping a '{ak}' translation, entries must be string to string.`
 )end end end end end function ag.setActive(aj:string?):string ag.current=if type(aj)=='string'and aj~=''then string.
 lower(aj)else'en'return ag.current end function ag.detect():string local aj=ae.localizationService.RobloxLocaleId if
 type(aj)=='string'and aj~=''then return string.lower(aj)end return'en'end return ag end)()end,[54]=function()local aa,ab
@@ -2614,30 +2661,30 @@ PersistedControl,unknown)->()}type ConfigWindow={controls:{[string]:PersistedCon
 customFolder:string?},name:string,_loading:boolean?,_loadedConfig:{[string]:unknown}?,_loadedConfigPath:string?}function
 ak.getPath(al:ConfigWindow,am:unknown?):(string?,string?)return ai.getConfigPath(al,am)end function ak.save(al:
 ConfigWindow,am:unknown?):boolean local b,c=ak.getPath(al,am)if not b or not c then ag.warn(
-"Keoirn: configuration name '"..tostring(am).."' has no usable characters")return false end if typeof(af.writefile)~=
+"Rayfield: configuration name '"..tostring(am).."' has no usable characters")return false end if typeof(af.writefile)~=
 'function'then return false end local d:{[string]:unknown}={}for e,f in al.controls do local g,h=pcall(function()local g
 =f._serialize if g then return g(f)end return f.value end)if g then d[e]=h else ag.warn(
-"Keoirn: Failed to serialize flag '"..tostring(e).."' - "..tostring(h))end end local e=al._loadedConfig if e and al.
+"Rayfield: Failed to serialize flag '"..tostring(e).."' - "..tostring(h))end end local e=al._loadedConfig if e and al.
 _loadedConfigPath==c then for f,g in e do if al.controls[f]==nil then d[f]=g end end end local f,g=pcall(ae.httpService.
-JSONEncode,ae.httpService,d)if not f then ag.warn('Keoirn: Failed to encode configuration - '..tostring(g))return
-false end local h,i=pcall(function()aj.write(b,c,g)end)if not h then ag.warn('Keoirn: Failed to save configuration - '
+JSONEncode,ae.httpService,d)if not f then ag.warn('Rayfield: Failed to encode configuration - '..tostring(g))return
+false end local h,i=pcall(function()aj.write(b,c,g)end)if not h then ag.warn('Rayfield: Failed to save configuration - '
 ..tostring(i))return false end if al._loadedConfigPath==nil or al._loadedConfigPath==c then al._loadedConfig=d al.
 _loadedConfigPath=c end return true end local function al(am:string):({[string]:unknown}?,string?)if not af.isfile(am)
 then return nil,nil end local b,c=pcall(af.readfile,am)if not b or type(c)~='string'then ag.warn
-'Keoirn: Failed to read configuration file'return nil,nil end local d,e=pcall(ae.httpService.JSONDecode,ae.httpService
+'Rayfield: Failed to read configuration file'return nil,nil end local d,e=pcall(ae.httpService.JSONDecode,ae.httpService
 ,c)if not d or type(e)~='table'then return nil,c end return e::{[string]:unknown},c end local function am(b:string):
 string local c=ah.stripExtension(b,'.rfld')local d,e=c..' (Incorrect Format).rfld',2 while e<=100 and af.isfile(d)do d=c
 ..' (Incorrect Format '..e..').rfld'e+=1 end return d end function ak.load(b:ConfigWindow,c:unknown?):boolean local d,e=
-ak.getPath(b,c)if not d or not e then ag.warn("Keoirn: configuration name '"..tostring(c)..
+ak.getPath(b,c)if not d or not e then ag.warn("Rayfield: configuration name '"..tostring(c)..
 "' has no usable characters")return false end if typeof(af.isfile)~='function'then return false end local f,g=al(e)if
 not f and af.isfile(e)then local h,i=al(aj.tempPathFor(e))if h and i then f=h pcall(aj.write,d,e,i)end end if not f then
-if g then ag.warn[[Keoirn: Configuration file has an invalid format, backing up and resetting]]local h=am(e)pcall(
+if g then ag.warn[[Rayfield: Configuration file has an invalid format, backing up and resetting]]local h=am(e)pcall(
 function()af.ensureDir(d)af.writefile(h,g)af.delfile(e)end)end return false end local h,i=f::{[string]:unknown},b.
 _loading b._loading=true local j,k=pcall(function()for j,k in b.controls do ak.applyTo(k,h[j])end end)b._loading=i if
-not j then ag.warn('Keoirn: Failed to apply configuration - '..tostring(k))end b._loadedConfig=h b._loadedConfigPath=e
+not j then ag.warn('Rayfield: Failed to apply configuration - '..tostring(k))end b._loadedConfig=h b._loadedConfigPath=e
 return true end function ak.applyTo(b:PersistedControl,c:unknown)if c==nil and not b._canBeNil then return end local d,e
 =pcall(function()local d=b._deserialize if d then d(b,c)else b:Set(c)end end)if not d then ag.warn(
-"Keoirn: Failed to restore flag '"..tostring(b.flag).."' - "..tostring(e))end end function ak.list(b:ConfigWindow):{
+"Rayfield: Failed to restore flag '"..tostring(b.flag).."' - "..tostring(e))end end function ak.list(b:ConfigWindow):{
 string}local c,d:{string}=ak.getPath(b),{}if not c then return d end local e,f=pcall(af.listfiles,c)if not e or type(f)
 ~='table'then return d end for g,h in f do local i=ah.basename(h)if i:sub(-5)=='.rfld'then local j=ah.stripExtension(i,
 '.rfld')if j and j~=''and not j:find' %(Incorrect Format[^%)]*%)$'then table.insert(d,j)end end end table.sort(d)return
@@ -2733,7 +2780,7 @@ math.min(math.clamp(c,am.minSize.Y,am.defaultSize.Y),c)e=math.floor(math.min(e,d
 floor(math.min(d,e*am.maxAspectRatio))return UDim2.fromOffset(d,e)end function af.fit(am:Vector2?,b:ae.Mode?):UDim2
 local c=af.profile(b)if not am or am.X<ag or am.Y<ag then return UDim2.fromOffset(c.defaultSize.X,c.defaultSize.Y)end
 local d,e=math.min(am.X*c.maxOccupancyX,am.X-c.marginFloorX),ai(c,am.Y)if c.minAspectRatio then return al(c,d,e)end
-return ak(c,d,e)end return af end)()end},{{1,2,{'Keoirn'},{{31,1,{'themes'},{{37,2,{'rose'}},{35,2,{'ember'}},{36,2,{
+return ak(c,d,e)end return af end)()end},{{1,2,{'Rayfield'},{{31,1,{'themes'},{{37,2,{'rose'}},{35,2,{'ember'}},{36,2,{
 'frost'}},{34,2,{'default'}},{32,2,{'amethyst'}},{33,2,{'cobalt'}}}},{39,1,{'utility'},{{56,2,{'moveable'}},{44,2,{
 'enums'}},{70,2,{'windowSizing'}},{69,2,{'variables'}},{68,2,{'textMetrics'}},{53,2,{'locale'}},{61,2,{'persistence'}},{
 58,2,{'odometer'}},{42,2,{'colors'}},{54,2,{'lockable'}},{47,2,{'flagNames'}},{67,2,{'services'}},{66,2,{'runtime'}},{46
@@ -2745,7 +2792,7 @@ return ak(c,d,e)end return af end)()end},{{1,2,{'Keoirn'},{{31,1,{'themes'},{{37
 2,{'popup'}},{30,2,{'window'}},{11,2,{'dropdown'}},{23,2,{'tab'}},{29,2,{'toggle'}},{4,2,{'button'}},{28,2,{'toast'}},{7
 ,2,{'console'}},{19,2,{'section'}},{3,2,{'action'}},{18,2,{'search'}},{27,2,{'text'}},{13,2,{'input'}},{12,2,{'group'}},
 {10,2,{'drag'}},{21,2,{'slider'}},{8,2,{'descriptor'}},{24,2,{'tabSection'}},{5,2,{'chrome'}},{14,2,{'keybind'}},{22,2,{
-'stat'}}}}}}},'0.4.1','Keoirn',string,task,setmetatable,error,next,table,unpack,coroutine,script,type,require,pcall,
+'stat'}}}}}}},'0.4.1','Rayfield',string,task,setmetatable,error,next,table,unpack,coroutine,script,type,require,pcall,
 xpcall,tostring,tonumber,_VERSION local j,k,l,m,n,o,p=aj.insert,aj.remove,aj.freeze or function(j)return j end,al.wrap,
 ae.sub,ae.match,ae.gmatch if h and n(h,1,4)=='Lune'then local q,r=d(c,'@lune/task')if q and r then af=r end end local q=
 af and af.defer local r,s,t,u,v,w,x,y,z=q or function(r,...)m(r)(...)end,{[1]='Folder',[2]='ModuleScript',[3]='Script',[
@@ -2788,1851 +2835,3 @@ FindFirstChild(U)if not V then local W=R.Parent if W then V=W:FindFirstChild(U)e
 'init'and T~='init.server'and T~='init.client'then ah('Virtual script path "'..N..'" not found',2)end end S=T end if R.
 ClassName~='ModuleScript'then ah(P,2)elseif R==H then ah(Q,2)end return F(R)end return I(c,N,...)end return K,L,M end
 for G,H in ai,x do r(F,H)end return F(E:GetChildren()[1])
-end)()
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 2 : KEOIRN ENHANCED COMPONENTS & UTILITIES
--- ──────────────────────────────────────────────────────────────────
---[[
-    ╔══════════════════════════════════════════════════════╗
-    ║           KEOIRN ENHANCED — by zurai02              ║
-    ║  Bug fixes + optimizations + new features           ║
-    ╚══════════════════════════════════════════════════════╝
-
-    CHANGES:
-    ─────────────────────────────────────────────────────
-    BUG FIXES
-      [1]  Smart-fallback: wrapped the fps-meter + loadstring in a
-           protected scope so a Lite load failure does NOT silently
-           crash the whole script.
-      [2]  ColorPicker._beginDrag: old code could leave a stale
-           _dragConnection alive if _beginDrag was called twice
-           quickly (double-tap on touch). Now always disconnects
-           before creating a new one.
-      [3]  ColorPicker._open: _outsideClickConn was disconnected
-           via window:Disconnect() but never set to nil when the
-           window itself cleaned it up, causing a double-free on
-           the next _open call. Fixed with explicit nil guard.
-      [4]  ColorPicker._close: task.delay fires after E.Time but
-           never re-checks _isOpen race against a quick re-open.
-           Added a closure-capture guard.
-      [5]  Action hover: n() (dim-on-leave) would be called even
-           while the window is being destroyed. Added unloaded guard.
-      [6]  Button._buildFull: click animation uses task.wait(0.11)
-           on the main thread inside ConnectFor — this blocks the
-           handler thread. Moved to task.spawn so it never stalls.
-      [7]  bindCollapsedDrag: WindowFocusReleased only resets `p`
-           but not `q`, so a drag could "resume" after refocus.
-           Both flags are now reset.
-      [8]  isNewUser: pcall around readfile was missing a return
-           guard — if writefile threw, `q` stayed true incorrectly.
-           Wrapped in a single atomic pcall block.
-      [9]  ColorPicker._pump: Color3.fromHSV is called even when
-           only alpha changed (hue/sat/val unchanged). Now only
-           recomputes value when hue/sat/val actually changed.
-      [10] ColorPicker hex 3-digit shorthand (#FFF) now correctly
-           expands to 6 digits before Color3.fromHex — was relying
-           on an undocumented Roblox behavior.
-
-    OPTIMISATIONS
-      [O1] TweenInfo objects are pre-cached as module-level
-           constants instead of being allocated on every render call.
-      [O2] _applyPickerVisibility: visibility table is built once
-           at module load, not every call; only transparency values
-           differ so they are patched per-call.
-      [O3] ColorPicker._render 'drag' path now skips tweens for
-           elements whose target value hasn't changed since last
-           render, reducing TweenService overhead during fast drags.
-      [O4] bindCollapsedDrag RenderStepped: magnitude check now
-           uses squared distance to avoid a sqrt per frame.
-      [O5] Smart-fallback fps average uses integer accumulator
-           to avoid float drift over 3-second sample window.
-
-    NEW FEATURES
-      [F1] ColorPicker: Copy-to-clipboard button on the hex field.
-      [F2] ColorPicker: Swatches row (8 preset + save-current).
-      [F3] Button: `disabled` prop — greys out and blocks clicks.
-            Button:SetDisabled(bool) at runtime.
-      [F4] Action: `tooltip` prop — shows a small label on hover.
-      [F5] Window: Keoirn.Destroy() — cleanly unloads the window
-           and all its connections without needing the window ref.
-      [F6] Global: Keoirn.Version constant string.
-      [F7] ColorPicker: OnOpen / OnClose callbacks.
-      [F8] Button: `cooldown` prop (seconds) — auto-disables after
-           click and re-enables after the cooldown expires.
-]]
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 0 : SMART FALLBACK  (Bug fix #1 — protected + optimised)
--- ──────────────────────────────────────────────────────────────────
-local SMART_FALLBACK = false
-local LITE_URL       = "https://raw.githubusercontent.com/Zeoirn/keoirn/refs/heads/main/KeoirnLite.lua"
-local FPS_THRESHOLD  = 2   -- if avg fps < 2 load Lite
-local SAMPLE_SECS    = 3
-
-if SMART_FALLBACK then
-    local RunService = game:GetService("RunService")
-    if RunService:IsClient() then
-        local frameCount, totalTime = 0, 0
-        -- [O5] integer frame counter, float only for time
-        local conn = RunService.RenderStepped:Connect(function(dt)
-            frameCount += 1
-            totalTime  += dt
-        end)
-        task.wait(SAMPLE_SECS)
-        conn:Disconnect()
-
-        local avgFps = totalTime > 0 and (frameCount / totalTime) or 60
-        if avgFps < FPS_THRESHOLD then
-            -- [F1 bugfix] wrap in pcall so a CDN failure doesn't kill the script
-            local ok, result = pcall(function()
-                return loadstring(game:HttpGet(LITE_URL, true))()
-            end)
-            if ok and result then
-                return result   -- hand off entirely to Lite
-            else
-                warn("[Keoirn] Smart fallback failed, continuing with full build:", result)
-            end
-        end
-    end
-end
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 1 : SHARED CONSTANTS  (Optimisation O1)
--- ──────────────────────────────────────────────────────────────────
--- Pre-allocate all TweenInfo objects exactly once at module level.
-local TWEEN = {
-    open    = TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
-    animate = TweenInfo.new(0.4, Enum.EasingStyle.Quint,       Enum.EasingDirection.Out),
-    hover   = TweenInfo.new(0.3, Enum.EasingStyle.Quint,       Enum.EasingDirection.Out),
-    held    = TweenInfo.new(0.12,Enum.EasingStyle.Quint,       Enum.EasingDirection.Out),
-    fast    = TweenInfo.new(0.2, Enum.EasingStyle.Quint,       Enum.EasingDirection.Out),
-    click   = TweenInfo.new(0.25,Enum.EasingStyle.Quint,       Enum.EasingDirection.Out),
-    clickBig= TweenInfo.new(0.6, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
-    clickEnd= TweenInfo.new(0.25,Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
-}
-
--- Version tag  [F6]
-local VERSION = "1.1.0-enhanced"
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 2 : UTILITY HELPERS
--- ──────────────────────────────────────────────────────────────────
-local function clamp01(v)
-    return math.clamp(v, 0, 1)
-end
-
-local function clampByte(v)
-    return math.clamp(math.round(v), 0, 255)
-end
-
--- [O4] squared-magnitude avoids sqrt per frame in drag checks
-local function magnitudeSq(v2)
-    return v2.X * v2.X + v2.Y * v2.Y
-end
-
--- Expand 3-digit hex to 6-digit  [Bug fix #10]
-local function expandHex(s)
-    if #s == 3 then
-        return s:sub(1,1):rep(2) .. s:sub(2,2):rep(2) .. s:sub(3,3):rep(2)
-    end
-    return s
-end
-
--- Named colours for smart-input
-local NAMED_COLORS = {
-    black   = Color3.fromRGB(0,0,0),       white   = Color3.fromRGB(255,255,255),
-    red     = Color3.fromRGB(255,0,0),     green   = Color3.fromRGB(0,255,0),
-    blue    = Color3.fromRGB(0,0,255),     yellow  = Color3.fromRGB(255,255,0),
-    cyan    = Color3.fromRGB(0,255,255),   magenta = Color3.fromRGB(255,0,255),
-    orange  = Color3.fromRGB(255,165,0),   purple  = Color3.fromRGB(128,0,128),
-    pink    = Color3.fromRGB(255,105,180), brown   = Color3.fromRGB(139,69,19),
-    gray    = Color3.fromRGB(128,128,128), grey    = Color3.fromRGB(128,128,128),
-}
-
--- HSL helper
-local function hslToColor3(h, s, l)
-    if s <= 0 then return Color3.new(l, l, l) end
-    local function hue2rgb(p, q, t)
-        t = t % 1
-        if t < 1/6 then return p + (q-p)*6*t
-        elseif t < 0.5 then return q
-        elseif t < 2/3 then return p + (q-p)*(2/3-t)*6
-        end
-        return p
-    end
-    local q = l < 0.5 and l*(1+s) or l+s-l*s
-    local p = 2*l - q
-    return Color3.new(hue2rgb(p,q,h+1/3), hue2rgb(p,q,h), hue2rgb(p,q,h-1/3))
-end
-
-local function parseNumbers(str)
-    local t = {}
-    for n in str:gmatch("[%d%.]+") do
-        table.insert(t, tonumber(n))
-    end
-    return t
-end
-
--- Smart colour parser (hex, rgb, hsv, hsl, named)
-local function parseColor(str)
-    if typeof(str) ~= "string" then return nil end
-    local s = (str:lower():match("^%s*(.-)%s*$")) or ""
-    if s == "" then return nil end
-
-    if NAMED_COLORS[s] then return NAMED_COLORS[s] end
-
-    local prefix = s:match("^(%a+)")
-    local nums   = parseNumbers(s)
-
-    if (prefix == "hsv" or prefix == "hsb") and #nums >= 3 then
-        local h = (nums[1] % 360) / 360
-        local sv = nums[2] > 1 and nums[2]/100 or nums[2]
-        local vv = nums[3] > 1 and nums[3]/100 or nums[3]
-        return Color3.fromHSV(h, clamp01(sv), clamp01(vv))
-    end
-
-    if prefix == "hsl" and #nums >= 3 then
-        local h = (nums[1] % 360) / 360
-        local sl = nums[2] > 1 and nums[2]/100 or nums[2]
-        local ll = nums[3] > 1 and nums[3]/100 or nums[3]
-        return hslToColor3(h, clamp01(sl), clamp01(ll))
-    end
-
-    if (prefix == "rgb" or prefix == "rgba") and #nums >= 3 then
-        return Color3.fromRGB(clampByte(nums[1]), clampByte(nums[2]), clampByte(nums[3]))
-    end
-
-    -- hex: #FFF  #FFFFFF  0xFFFFFF
-    local hex = s:match("^#?(%x%x%x%x%x%x)$")
-             or s:match("^0x(%x%x%x%x%x%x)$")
-             or s:match("^#?(%x%x%x)$")   -- 3-digit shorthand
-    if hex then
-        hex = expandHex(hex)  -- [Fix #10]
-        local ok, c = pcall(Color3.fromHex, hex)
-        if ok then return c end
-    end
-
-    -- bare numbers
-    if #nums >= 3 and not prefix then
-        if nums[1] <= 1 and nums[2] <= 1 and nums[3] <= 1 then
-            return Color3.new(clamp01(nums[1]), clamp01(nums[2]), clamp01(nums[3]))
-        end
-        return Color3.fromRGB(clampByte(nums[1]), clampByte(nums[2]), clampByte(nums[3]))
-    end
-
-    return nil
-end
-
-local function resolveColor(val, default)
-    if typeof(val) == "Color3"  then return val end
-    if typeof(val) == "string"  then return parseColor(val) or default end
-    return default
-end
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 3 : ACTION COMPONENT  (Fix #5, New F4 tooltip)
--- ──────────────────────────────────────────────────────────────────
-local Action = {}
-Action.__index  = Action
-Action.__type   = "Action"
-
-function Action.new(window, props)
-    props = typeof(props) == "table" and props or {}
-    local self = setmetatable({
-        window    = assert(window, "Missing argument #1 (Window expected)"),
-        name      = props.name    or props.Name    or "Action",
-        icon      = assert(props.icon or props.Icon, "Missing argument (Icon expected)"),
-        callback  = assert(props.callback or props.Callback, "Missing argument (Function expected)"),
-        linkedTab = props.linkedTab or props.LinkedTab,
-        tooltip   = props.tooltip  or props.Tooltip,  -- [F4]
-    }, Action)
-
-    -- Build frame + icon
-    self.action = window:Create("Frame", {
-        Name              = self.name,
-        BorderSizePixel   = 0,
-        LayoutOrder       = -(props.order or 0),
-        Size              = UDim2.fromOffset(24, 24),
-        BackgroundTransparency = 1,
-        Parent            = window.actionContainer,
-    })
-    self.iconLabel = window:Create("ImageLabel", {
-        Image             = self.icon,
-        Size              = UDim2.fromOffset(20, 20),
-        BorderSizePixel   = 0,
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        Position          = UDim2.fromScale(0.5, 0.5),
-        BackgroundTransparency = 1,
-        ImageTransparency = 1,
-        Parent            = self.action,
-    }, { ImageColor3 = "ActionColor" })
-    self.interact = window:Create("TextButton", {
-        BackgroundTransparency = 1,
-        Size              = UDim2.fromScale(1, 1),
-        BorderSizePixel   = 0,
-        Position          = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        TextTransparency  = 1,
-        Parent            = self.action,
-    })
-
-    -- [F4] Tooltip label (hidden by default)
-    if self.tooltip then
-        self.tooltipLabel = window:Create("TextLabel", {
-            Text              = self.tooltip,
-            Size              = UDim2.fromOffset(0, 20),
-            AutomaticSize     = Enum.AutomaticSize.X,
-            BackgroundColor3  = Color3.fromRGB(30, 30, 30),
-            BackgroundTransparency = 0.1,
-            BorderSizePixel   = 0,
-            TextSize          = 13,
-            TextColor3        = Color3.fromRGB(255, 255, 255),
-            AnchorPoint       = Vector2.new(0.5, 1),
-            Position          = UDim2.new(0.5, 0, 0, -4),
-            ZIndex            = 100,
-            Visible           = false,
-            Parent            = self.action,
-        })
-        window:Create("UICorner",  { CornerRadius = UDim.new(0, 4), Parent = self.tooltipLabel })
-        window:Create("UIPadding", {
-            PaddingLeft  = UDim.new(0, 6),
-            PaddingRight = UDim.new(0, 6),
-            Parent       = self.tooltipLabel,
-        })
-    end
-
-    -- Dim helper  [Fix #5 — unloaded guard]
-    local function dim()
-        if window.unloaded then return end
-        if not window:_settled() then return end
-        if self.linkedTab and window.selectedTab == self.linkedTab then return end
-        if self.isLit and self:isLit() then return end
-        window:GetService("TweenService"):Create(
-            self.iconLabel, TWEEN.click, { ImageTransparency = 0.6 }
-        ):Play()
-    end
-
-    -- Click
-    window:Connect(self.interact.MouseButton1Click, function()
-        if window.unloaded then return end  -- [Fix #5]
-        task.spawn(function()
-            local ok, err = pcall(self.callback)
-            if not ok then
-                warn("[Keoirn] Action '" .. self.name .. "' callback error:", err)
-            end
-            dim()
-        end)
-    end)
-
-    -- Hover bright
-    window:Connect(self.interact.MouseEnter, function()
-        if not window:_interactive() then return end
-        if self.tooltipLabel then self.tooltipLabel.Visible = true end
-        window:GetService("TweenService"):Create(
-            self.iconLabel, TWEEN.click, { ImageTransparency = 0.2 }
-        ):Play()
-    end)
-
-    -- Hover leave
-    window:Connect(self.interact.MouseLeave, function()
-        if self.tooltipLabel then self.tooltipLabel.Visible = false end
-        dim()
-    end)
-
-    return self
-end
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 4 : BUTTON COMPONENT  (Fix #6, New F3 disabled, F8 cooldown)
--- ──────────────────────────────────────────────────────────────────
-local Button = {}
-Button.__index = Button
-Button.__type  = "Button"
-
-function Button.new(tab, props)
-    props = typeof(props) == "table" and props or {}
-    local self = setmetatable({
-        tab         = assert(tab, "Missing argument #1 (Tab expected)"),
-        window      = tab.window,
-        name        = props.name        or props.Name        or "Button",
-        icon        = props.icon        or props.Icon,
-        description = props.description or props.Description,
-        compact     = tab.compact or false,
-        callback    = props.callback    or props.Callback    or function() end,
-        disabled    = props.disabled    or props.Disabled    or false,  -- [F3]
-        cooldown    = props.cooldown    or props.Cooldown    or 0,      -- [F8]
-        _onCooldown = false,
-    }, Button)
-
-    if self.compact then
-        self:_buildCompact()
-    else
-        self:_buildFull()
-    end
-
-    if self.description and not self.compact then
-        -- descriptor handled by parent framework
-    end
-
-    return self
-end
-
--- [F3] Runtime disable/enable
-function Button:SetDisabled(state)
-    self.disabled = state
-    if self.main then
-        self.main.BackgroundTransparency = state and 0.6 or 1
-    end
-    if self.title then
-        self.title.TextTransparency = state and 0.6 or 1
-    end
-end
-
-function Button:_runCallback()
-    if self.disabled or self._onCooldown then return end
-
-    -- [F8] Cooldown logic
-    if self.cooldown > 0 then
-        self._onCooldown = true
-        self:SetDisabled(true)
-        task.delay(self.cooldown, function()
-            self._onCooldown = false
-            self:SetDisabled(false)
-        end)
-    end
-
-    self.window:_runGuarded(self, self.callback)
-end
-
-function Button:_buildFull()
-    local win = self.window
-    self.main = win:Create("Frame", {
-        Size              = UDim2.new(1, -20, 0, 43),
-        BorderSizePixel   = 0,
-        Name              = self.name,
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 1,
-        Parent            = self.tab.tabPage,
-    }, { BackgroundTransparency = "ElementTransparency" })
-
-    self.stroke      = win:StyleElementBody(self.main)
-    self.hoverOverlay = win:CreateHoverOverlay(self.main)
-
-    self.container = win:Create("Frame", {
-        BorderSizePixel   = 0,
-        Parent            = self.main,
-        Size              = UDim2.new(0, 170, 0, 16),
-        Position          = UDim2.new(0, 20, 0.5, 0),
-        AnchorPoint       = Vector2.new(0, 0.5),
-        BackgroundTransparency = 1,
-    })
-    win:Create("UIListLayout", {
-        Padding           = UDim.new(0, 5),
-        FillDirection     = Enum.FillDirection.Horizontal,
-        VerticalAlignment = Enum.VerticalAlignment.Center,
-        HorizontalAlignment = Enum.HorizontalAlignment.Left,
-        Parent            = self.container,
-    })
-
-    if self.icon then
-        self.iconLabel = win:Create("ImageLabel", {
-            Image             = self.icon,
-            Size              = UDim2.fromOffset(16, 16),
-            BorderSizePixel   = 0,
-            BackgroundTransparency = 1,
-            ImageTransparency = 1,
-            Parent            = self.container,
-        }, { ImageColor3 = "ContentColor" })
-    end
-
-    self.title = win:Create("TextLabel", {
-        Text              = self.name,
-        Size              = UDim2.fromOffset(250, 16),
-        BorderSizePixel   = 0,
-        BackgroundTransparency = 1,
-        TextSize          = 16,
-        AutomaticSize     = Enum.AutomaticSize.X,
-        TextXAlignment    = Enum.TextXAlignment.Left,
-        TextWrapped       = true,
-        LayoutOrder       = 1,
-        TextTransparency  = 1,
-        Parent            = self.container,
-    }, { TextColor3 = "ContentColor", FontFace = "Font" })
-
-    self.interact = win:Create("TextButton", {
-        BackgroundTransparency = 1,
-        Size              = UDim2.fromScale(1, 1),
-        BorderSizePixel   = 0,
-        Position          = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        TextTransparency  = 1,
-        Parent            = self.main,
-    })
-
-    win:_wireElementHover(self)
-
-    -- [Fix #6] Moved task.wait into task.spawn so it never stalls the handler
-    win:ConnectFor(self, self.interact.MouseButton1Click, function()
-        if self.disabled or self._onCooldown then return end
-        local ts = game:GetService("TweenService")
-        ts:Create(self.stroke, TWEEN.click,    { Transparency = 1 }):Play()
-        ts:Create(self.main,   TWEEN.clickBig, { Size = UDim2.new(1, -26, 0, 43) }):Play()
-        self:_runCallback()
-        task.spawn(function()  -- [Fix #6] non-blocking
-            task.wait(0.11)
-            ts:Create(self.main,   TWEEN.clickEnd, { Size = UDim2.new(1, -20, 0, 43) }):Play()
-            ts:Create(self.stroke, TWEEN.click,    { Transparency = self.window.theme.ElementStrokeTransparency }):Play()
-        end)
-    end)
-end
-
-function Button:_buildCompact()
-    local win = self.window
-    self.main, self.stroke, self.interact = win:_buildCompactRow(self.tab, self.name)
-    self.hoverOverlay = self.interact
-
-    win:Create("UIPadding", {
-        PaddingLeft  = UDim.new(0, 16),
-        PaddingRight = UDim.new(0, 16),
-        Parent       = self.interact,
-    })
-    win:Create("UIListLayout", {
-        FillDirection       = Enum.FillDirection.Horizontal,
-        VerticalAlignment   = Enum.VerticalAlignment.Center,
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        Padding             = UDim.new(0, 6),
-        Parent              = self.interact,
-    })
-
-    if self.icon then
-        self.iconLabel = win:Create("ImageLabel", {
-            Image             = self.icon,
-            Size              = UDim2.fromOffset(16, 16),
-            BorderSizePixel   = 0,
-            BackgroundTransparency = 1,
-            LayoutOrder       = 0,
-            ImageTransparency = 1,
-            Parent            = self.interact,
-        }, { ImageColor3 = "ContentColor" })
-    end
-
-    self.title = win:Create("TextLabel", {
-        Text              = self.name,
-        Size              = UDim2.fromOffset(0, 16),
-        AutomaticSize     = Enum.AutomaticSize.X,
-        BorderSizePixel   = 0,
-        BackgroundTransparency = 1,
-        TextSize          = 16,
-        TextXAlignment    = Enum.TextXAlignment.Left,
-        TextTruncate      = Enum.TextTruncate.AtEnd,
-        LayoutOrder       = 1,
-        TextTransparency  = 1,
-        Parent            = self.interact,
-    }, { TextColor3 = "ContentColor", FontFace = "Font" })
-
-    win:Create("UIFlexItem", { FlexMode = Enum.UIFlexMode.Shrink, Parent = self.title })
-    win:_wireElementHover(self)
-
-    -- [Fix #6] Same non-blocking fix for compact
-    win:ConnectFor(self, self.interact.MouseButton1Click, function()
-        if self.disabled or self._onCooldown then return end
-        local ts = game:GetService("TweenService")
-        ts:Create(self.stroke, TWEEN.click, { Transparency = 1 }):Play()
-        self:_runCallback()
-        task.spawn(function()
-            task.wait(0.11)
-            ts:Create(self.stroke, TWEEN.click, {
-                Transparency = self.window.theme.ElementStrokeTransparency
-            }):Play()
-        end)
-    end)
-end
-
-function Button:_setShown(visible, tweenInfo)
-    if visible then
-        self.window:_revealCommon(self, tweenInfo)
-    else
-        self.window:_hideCommon(self, tweenInfo)
-    end
-end
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 5 : COLLAPSED-WINDOW HELPERS  (Fix #7, #8, O4)
--- ──────────────────────────────────────────────────────────────────
-local CollapsedHelper = {}
-
-function CollapsedHelper.buildCollapsedFace(win)
-    local iconOnly = win.showIconOnly
-    win.collapsedIcon = win:Create("ImageLabel", {
-        Name              = "CollapsedIcon",
-        AnchorPoint       = iconOnly and Vector2.new(0.5, 0.5) or Vector2.new(0, 0.5),
-        Position          = iconOnly and UDim2.fromScale(0.5, 0.5) or UDim2.new(0, 16, 0.5, 0),
-        Size              = UDim2.fromOffset(24, 24),
-        BackgroundTransparency = 1,
-        Image             = win.showIcon,
-        ImageTransparency = 1,
-        Parent            = win.main,
-    }, { ImageColor3 = "TitlingColor" })
-    win:Create("UICorner", { Parent = win.collapsedIcon }, { CornerRadius = "PillCornerRadius" })
-
-    local textFrame = win:Create("Frame", {
-        Name              = "CollapsedText",
-        Visible           = not iconOnly,
-        AnchorPoint       = Vector2.new(0, 0.5),
-        Position          = UDim2.new(0, 50, 0.5, 0),
-        Size              = UDim2.new(1, -60, 0, 32),
-        BackgroundTransparency = 1,
-        Parent            = win.main,
-    })
-    win:Create("UIListLayout", {
-        Padding           = UDim.new(0, 1),
-        VerticalAlignment = Enum.VerticalAlignment.Center,
-        SortOrder         = Enum.SortOrder.LayoutOrder,
-        Parent            = textFrame,
-    })
-    win.collapsedTitle = win:Create("TextLabel", {
-        Name              = "Title",
-        Text              = win.showName,
-        Size              = UDim2.new(1, 0, 0, 16),
-        BackgroundTransparency = 1,
-        TextSize          = 16,
-        TextWrapped       = true,
-        TextXAlignment    = Enum.TextXAlignment.Left,
-        LayoutOrder       = 1,
-        TextTransparency  = 1,
-        RichText          = true,
-        Parent            = textFrame,
-    }, { TextColor3 = "TitlingColor" })
-    win.collapsedSubtitle = win:Create("TextLabel", {
-        Name              = "Subtitle",
-        Text              = "Tap to show",
-        Size              = UDim2.new(1, 0, 0, 14),
-        BackgroundTransparency = 1,
-        TextSize          = 14,
-        TextXAlignment    = Enum.TextXAlignment.Left,
-        LayoutOrder       = 2,
-        TextTransparency  = 1,
-        Parent            = textFrame,
-    }, { TextColor3 = "TitlingColor" })
-    win.collapsedInteract = win:Create("TextButton", {
-        Name              = "CollapsedInteract",
-        BackgroundTransparency = 1,
-        Size              = UDim2.fromScale(1, 1),
-        Text              = "",
-        TextTransparency  = 1,
-        Visible           = false,
-        Parent            = win.main,
-    })
-
-    CollapsedHelper.bindCollapsedDrag(win)
-end
-
-local DRAG_SQ_THRESHOLD = 25 -- 5px squared  [O4]
-
-function CollapsedHelper.bindCollapsedDrag(win)
-    local UIS         = game:GetService("UserInputService")
-    local dragging    = false
-    local didDrag     = false
-    local startMouse  = Vector2.zero
-    local offset      = Vector2.zero
-
-    local function getInset()
-        if win.screenGui and win.screenGui.IgnoreGuiInset then
-            return game:GetService("GuiService"):GetGuiInset()
-        end
-        return Vector2.zero
-    end
-
-    win:Connect(win.collapsedInteract.InputBegan, function(input, consumed)
-        if consumed or not win.hidden or win.animating then return end
-        local t = input.UserInputType
-        if t ~= Enum.UserInputType.MouseButton1 and t ~= Enum.UserInputType.Touch then return end
-        dragging  = true
-        didDrag   = false   -- [Fix #7] always reset both
-        startMouse = UIS:GetMouseLocation()
-        offset     = win.main.AbsolutePosition + win.main.AbsoluteSize * win.main.AnchorPoint - startMouse
-    end)
-
-    win:Connect(UIS.InputEnded, function(input)
-        local t = input.UserInputType
-        if t ~= Enum.UserInputType.MouseButton1 and t ~= Enum.UserInputType.Touch then return end
-        if not dragging then return end
-        dragging = false
-        if didDrag then
-            win._collapsedPosition = win.main.Position
-        else
-            win:ToggleHide()
-        end
-    end)
-
-    -- [Fix #7] reset both flags on focus loss
-    win:Connect(UIS.WindowFocusReleased, function()
-        dragging = false
-        didDrag  = false
-    end)
-
-    win:Connect(game:GetService("RunService").RenderStepped, function()
-        if not dragging then return end
-        if not win.hidden or win.animating then
-            dragging = false
-            return
-        end
-        local mouse = UIS:GetMouseLocation()
-        -- [O4] squared-distance avoids sqrt per frame
-        if not didDrag and magnitudeSq(mouse - startMouse) < DRAG_SQ_THRESHOLD then return end
-        didDrag = true
-        local pos = mouse + offset + getInset()
-        win.main.Position = UDim2.fromOffset(pos.X, pos.Y)
-    end)
-end
-
--- [Fix #8] isNewUser: atomic pcall around both file ops
-function CollapsedHelper.isNewUser()
-    local players = game:GetService("Players")
-    local player  = players.LocalPlayer
-    if not player then return false end
-
-    local fs = _G.KeoirnFileSystem  -- injected by parent framework
-    if type(fs) ~= "table" or type(fs.isfile) ~= "function" then return true end
-
-    local path   = fs:getPath("lastuser.txt")
-    local userId = tostring(player.UserId)
-    local isNew  = true
-
-    -- [Fix #8] single protected block; if either op fails, we're conservative
-    local ok = pcall(function()
-        if fs.isfile(path) then
-            isNew = fs.readfile(path) ~= userId
-        end
-        fs.writefile(path, userId)
-    end)
-
-    if not ok then isNew = true end
-    return isNew
-end
-
-function CollapsedHelper.setCollapsedShown(win, visible, tweenInfo)
-    local targets = {
-        [win.collapsedIcon]     = { ImageTransparency = visible and 0 or 1 },
-    }
-    if not win.showIconOnly then
-        targets[win.collapsedTitle]    = { TextTransparency = visible and 0 or 1 }
-        targets[win.collapsedSubtitle] = { TextTransparency = visible and 0.5 or 1 }
-    end
-    local ts = game:GetService("TweenService")
-    for inst, props in targets do
-        if tweenInfo then
-            ts:Create(inst, tweenInfo, props):Play()
-        else
-            for k, v in props do inst[k] = v end
-        end
-    end
-end
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 6 : COLOR PICKER  (Fixes #2 #3 #4 #9, Opts O2 O3, Features F1 F2 F7)
--- ──────────────────────────────────────────────────────────────────
-local ColorPicker = {}
-ColorPicker.__index = ColorPicker
-ColorPicker.__type  = "ColorPicker"
-
--- Layout constants
-local CP = {
-    hueSpectrum = ColorSequence.new{
-        ColorSequenceKeypoint.new(0,    Color3.fromRGB(255, 0,   0)),
-        ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
-        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0,   255, 0)),
-        ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(0,   255, 255)),
-        ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0,   0,   255)),
-        ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0,   255)),
-        ColorSequenceKeypoint.new(1,    Color3.fromRGB(255, 0,   0)),
-    },
-    headerHeight = 41,
-    hueBarX      = 184, hueBarW = 10,
-    alphaBarX    = 214, alphaBarW = 10,
-    hexFieldX    = 240, alphaFieldW = 62, alphaFieldGap = 8,
-    mapSize      = Vector2.new(150, 120),
-    elemHeight   = 400,
-
-    -- [O2] Pre-built visibility tables — only transparency values change per call
-    -- Filled in after field declarations below
-    visOpen  = nil,
-    visClosed = nil,
-
-    -- Swatches  [F2]
-    defaultSwatches = {
-        Color3.fromRGB(255, 80,  80),
-        Color3.fromRGB(255, 180, 60),
-        Color3.fromRGB(80,  200, 80),
-        Color3.fromRGB(60,  160, 255),
-        Color3.fromRGB(160, 80,  255),
-        Color3.fromRGB(255, 80,  180),
-        Color3.fromRGB(255, 255, 255),
-        Color3.fromRGB(50,  50,  50),
-    },
-}
-
--- Layout mode dimensions
-local LAYOUT = {
-    wide = {
-        height       = 220,  -- +30 for swatches row [F2]
-        previewPos   = UDim2.new(1, -20, 0, CP.headerHeight + 39),
-        previewSize  = UDim2.new(1, -(CP.hueBarX + 20), 0, 78),
-        hexPos       = UDim2.new(0, CP.hueBarX, 0, CP.headerHeight + 90),
-        hexSize      = UDim2.new(1, -(CP.hueBarX + 20 + CP.alphaFieldW + CP.alphaFieldGap), 0, 30),
-        alphaPos     = UDim2.new(1, -(20 + CP.alphaFieldW), 0, CP.headerHeight + 90),
-        alphaSize    = UDim2.fromOffset(CP.alphaFieldW, 30),
-    },
-    narrow = {
-        height       = 326,  -- +30 for swatches [F2]
-        previewPos   = UDim2.new(1, -20, 0, CP.headerHeight + CP.mapSize.Y + 40),
-        previewSize  = UDim2.new(1, -40, 0, 56),
-        hexPos       = UDim2.new(0, 20, 0, CP.headerHeight + CP.mapSize.Y + 78),
-        hexSize      = UDim2.new(1, -(40 + CP.alphaFieldW + CP.alphaFieldGap), 0, 30),
-        alphaPos     = UDim2.new(1, -(20 + CP.alphaFieldW), 0, CP.headerHeight + CP.mapSize.Y + 78),
-        alphaSize    = UDim2.fromOffset(CP.alphaFieldW, 30),
-    },
-}
-
-function ColorPicker.new(tab, props)
-    props = typeof(props) == "table" and props or {}
-    local self = setmetatable({
-        tab         = assert(tab, "Missing argument #1 (Tab expected)"),
-        window      = tab.window,
-        name        = props.name        or props.Name        or "Color Picker",
-        icon        = props.icon        or props.Icon,
-        description = props.description or props.Description,
-        forgetState = props.forgetState or props.ForgetState or tab.forgetState,
-        callback    = props.callback    or props.Callback    or function() end,
-        onOpen      = props.onOpen      or props.OnOpen,     -- [F7]
-        onClose     = props.onClose     or props.OnClose,    -- [F7]
-        swatches    = props.swatches    or props.Swatches    or CP.defaultSwatches, -- [F2]
-        _isOpen     = false,
-        _drag       = nil,
-        _dragIsMouse = false,
-        _dragConnection = nil,
-        _outsideClickConn = nil,
-        _layoutMode = nil,
-        _lastRender = { hue=-1, sat=-1, val=-1, alpha=-1 },  -- [O3]
-    }, ColorPicker)
-
-    self.value = resolveColor(
-        props.color or props.Color or props.value or props.Value or props.default,
-        Color3.fromRGB(255, 255, 255)
-    )
-    self.hue, self.sat, self.val = self.value:ToHSV()
-
-    local alphaIn = props.alpha or props.Alpha
-    self.alpha = type(alphaIn) == "number" and clamp01(alphaIn) or 1
-
-    -- Flag / state registration
-    local functions = { deriveFlagFromName = function(name) return (name:gsub("%s+", ""):gsub("[^%w_]", "")) end }
-    self.flag = props.flag or props.Flag
-        or (not self.forgetState and functions.deriveFlagFromName(self.name) or nil)
-    self.window:_registerControl(self)
-
-    -- Build UI
-    self.main = self.window:Create("Frame", {
-        Size              = UDim2.new(1, -20, 0, CP.elemHeight),
-        BorderSizePixel   = 0,
-        Name              = self.name,
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 1,
-        Parent            = tab.tabPage,
-    }, { BackgroundTransparency = "ElementTransparency" })
-
-    self.stroke       = self.window:StyleElementBody(self.main)
-    self.hoverOverlay = self.window:CreateHoverOverlay(self.main)
-
-    self:_buildHeader()
-    self:_buildPicker()
-    self:_buildSwatches()  -- [F2]
-
-    -- Toggle open/close
-    self.window:ConnectFor(self, self.interact.MouseButton1Click, function()
-        if self._isOpen then self:_close() else self:_open() end
-    end)
-
-    -- Hover effects
-    self.window:ConnectFor(self, self.main.MouseEnter, function()
-        if self._isOpen or not self.window:_interactive() then return end
-        local theme = self.window.theme
-        local ts = game:GetService("TweenService")
-        ts:Create(self.stroke,       TWEEN.hover, { Transparency = theme.ElementStrokeHoverTransparency, Color = theme.ElementStrokeHover }):Play()
-        ts:Create(self.title,        TWEEN.hover, { TextColor3   = theme.ElementTextHoverColor }):Play()
-        ts:Create(self.hoverOverlay, TWEEN.hover, { BackgroundTransparency = 0.97 }):Play()
-    end)
-    self.window:ConnectFor(self, self.main.MouseLeave, function()
-        local theme = self.window.theme
-        local ts = game:GetService("TweenService")
-        ts:Create(self.stroke,       TWEEN.hover, { Transparency = theme.ElementStrokeTransparency, Color = theme.ElementStroke }):Play()
-        ts:Create(self.title,        TWEEN.hover, { TextColor3   = theme.ContentColor }):Play()
-        ts:Create(self.hoverOverlay, TWEEN.hover, { BackgroundTransparency = 1 }):Play()
-    end)
-
-    self:_applyPickerVisibility(false, false)
-    self:_setControlsVisible(false)
-    self.window:ConnectFor(self, self.main:GetPropertyChangedSignal("AbsoluteSize"), function()
-        if self.window.animating or (self.window.hidden and self.window.hasShownOnce) then return end
-        self:_applyLayout()
-    end)
-    self:_applyLayout()
-    self:_render("instant")
-
-    return self
-end
-
-function ColorPicker:_buildHeader()
-    self.container = self.window:Create("Frame", {
-        Size              = UDim2.new(0, 170, 0, 16),
-        Position          = UDim2.new(0, 20, 0, CP.headerHeight / 2),
-        AnchorPoint       = Vector2.new(0, 0.5),
-        BackgroundTransparency = 1,
-        BorderSizePixel   = 0,
-        ZIndex            = 5,
-        Parent            = self.main,
-    })
-    self.window:Create("UIListLayout", {
-        Padding           = UDim.new(0, 5),
-        FillDirection     = Enum.FillDirection.Horizontal,
-        VerticalAlignment = Enum.VerticalAlignment.Center,
-        SortOrder         = Enum.SortOrder.LayoutOrder,
-        Parent            = self.container,
-    })
-
-    if self.icon then
-        self.iconLabel = self.window:Create("ImageLabel", {
-            Image             = self.icon,
-            Size              = UDim2.fromOffset(16, 16),
-            BorderSizePixel   = 0,
-            BackgroundTransparency = 1,
-            ZIndex            = 5,
-            ImageTransparency = 1,
-            Parent            = self.container,
-        }, { ImageColor3 = "ContentColor" })
-    end
-
-    self.title = self.window:Create("TextLabel", {
-        Text              = self.name,
-        Size              = UDim2.fromOffset(150, 16),
-        AutomaticSize     = Enum.AutomaticSize.X,
-        BorderSizePixel   = 0,
-        BackgroundTransparency = 1,
-        TextSize          = 16,
-        TextXAlignment    = Enum.TextXAlignment.Left,
-        LayoutOrder       = 1,
-        ZIndex            = 5,
-        TextTransparency  = 1,
-        Parent            = self.container,
-    }, { TextColor3 = "ContentColor", FontFace = "Font" })
-
-    -- Colour preview swatch
-    local previewPos  = UDim2.new(1, -16, 0, CP.headerHeight / 2)
-    local previewSize = UDim2.fromOffset(40, 22)
-    self.preview = self.window:Create("Frame", {
-        AnchorPoint       = Vector2.new(1, 0.5),
-        Position          = previewPos,
-        Size              = previewSize,
-        BackgroundColor3  = self.value,
-        BorderSizePixel   = 0,
-        ZIndex            = 3,
-        BackgroundTransparency = 1,
-        Parent            = self.main,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = self.preview })
-    self.previewShadow = self.window:CreateGlow(self.preview, self.value, 20, 1)
-
-    -- [F1] Copy-to-clipboard button on the preview
-    self.copyBtn = self.window:Create("TextButton", {
-        Text              = "⎘",
-        Size              = UDim2.fromOffset(18, 18),
-        AnchorPoint       = Vector2.new(1, 0),
-        Position          = UDim2.new(1, 0, 0, -20),
-        BackgroundColor3  = Color3.fromRGB(40, 40, 40),
-        BackgroundTransparency = 0.3,
-        BorderSizePixel   = 0,
-        TextColor3        = Color3.fromRGB(255, 255, 255),
-        TextSize          = 12,
-        ZIndex            = 15,
-        Visible           = false,
-        Parent            = self.main,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = self.copyBtn })
-    self.window:Connect(self.copyBtn.MouseButton1Click, function()
-        local hex = "#" .. self.value:ToHex():upper()
-        setclipboard(hex)  -- executor global; safe to pcall
-        self.copyBtn.Text = "✓"
-        task.delay(1.5, function() self.copyBtn.Text = "⎘" end)
-    end)
-    self.window:Connect(self.main.MouseEnter, function()
-        self.copyBtn.Visible = true
-    end)
-    self.window:Connect(self.main.MouseLeave, function()
-        self.copyBtn.Visible = false
-    end)
-
-    -- Invisible-alpha indicator
-    self.invisibleGroup = self.window:Create("Frame", {
-        Size              = UDim2.fromScale(1, 1),
-        Position          = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 1,
-        BorderSizePixel   = 0,
-        ZIndex            = 5,
-        Parent            = self.preview,
-    })
-    self.window:Create("UIListLayout", {
-        FillDirection       = Enum.FillDirection.Horizontal,
-        VerticalAlignment   = Enum.VerticalAlignment.Center,
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        Padding             = UDim.new(0, 6),
-        SortOrder           = Enum.SortOrder.LayoutOrder,
-        Parent              = self.invisibleGroup,
-    })
-    self.invisibleText = self.window:Create("TextLabel", {
-        Text              = "Invisible",
-        Size              = UDim2.fromOffset(0, 16),
-        AutomaticSize     = Enum.AutomaticSize.X,
-        BackgroundTransparency = 1,
-        BorderSizePixel   = 0,
-        TextSize          = 15,
-        LayoutOrder       = 1,
-        ZIndex            = 5,
-        TextTransparency  = 1,
-        Parent            = self.invisibleGroup,
-    }, { TextColor3 = "ContentColor", FontFace = "Font" })
-
-    self.interact = self.window:Create("TextButton", {
-        BackgroundTransparency = 1,
-        Size              = UDim2.new(1, 0, 0, CP.headerHeight),
-        Position          = UDim2.fromScale(0, 0),
-        BorderSizePixel   = 0,
-        Text              = "",
-        TextTransparency  = 1,
-        AutoButtonColor   = false,
-        ZIndex            = 10,
-        Parent            = self.main,
-    })
-end
-
-function ColorPicker:_buildMap()
-    self.map = self.window:Create("Frame", {
-        Position          = UDim2.fromOffset(20, CP.headerHeight),
-        Size              = UDim2.fromOffset(CP.mapSize.X, CP.mapSize.Y),
-        BackgroundColor3  = Color3.fromHSV(self.hue, 1, 1),
-        BorderSizePixel   = 0,
-        ZIndex            = 2,
-        BackgroundTransparency = 1,
-        Parent            = self.main,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = self.map })
-    self.mapStroke = self.window:Create("UIStroke", {
-        Color = Color3.fromRGB(255, 255, 255), Transparency = 1, Parent = self.map
-    })
-    self.satOverlay = self.window:Create("Frame", {
-        Size              = UDim2.fromScale(1, 1),
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel   = 0,
-        ZIndex            = 3,
-        BackgroundTransparency = 1,
-        Parent            = self.map,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = self.satOverlay })
-    self.window:Create("UIGradient", {
-        Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) },
-        Parent       = self.satOverlay,
-    })
-    self.valOverlay = self.window:Create("Frame", {
-        Size              = UDim2.fromScale(1, 1),
-        BackgroundColor3  = Color3.fromRGB(0, 0, 0),
-        BorderSizePixel   = 0,
-        ZIndex            = 4,
-        BackgroundTransparency = 1,
-        Parent            = self.map,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = self.valOverlay })
-    self.window:Create("UIGradient", {
-        Rotation     = 90,
-        Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0) },
-        Parent       = self.valOverlay,
-    })
-end
-
-function ColorPicker:_buildPicker()
-    self:_buildMap()
-
-    self.satCursor = self.window:Create("Frame", {
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        Size              = UDim2.fromOffset(12, 12),
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel   = 0,
-        ZIndex            = 6,
-        BackgroundTransparency = 1,
-        Parent            = self.map,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = self.satCursor })
-    self.satCursorStroke = self.window:Create("UIStroke", {
-        Color = Color3.fromRGB(255,255,255), Thickness = 2, Transparency = 1, Parent = self.satCursor
-    })
-    self.mapInteract = self.window:Create("TextButton", {
-        BackgroundTransparency = 1,
-        Size              = UDim2.fromScale(1, 1),
-        Text              = "",
-        TextTransparency  = 1,
-        AutoButtonColor   = false,
-        ZIndex            = 7,
-        Parent            = self.map,
-    })
-
-    -- Hue bar
-    local hueW = CP.hueBarW
-    self.hueBar = self.window:Create("Frame", {
-        Position          = UDim2.fromOffset(CP.hueBarX, CP.headerHeight),
-        Size              = UDim2.fromOffset(hueW, CP.mapSize.Y),
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel   = 0,
-        ZIndex            = 2,
-        BackgroundTransparency = 1,
-        Parent            = self.main,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = self.hueBar })
-    self.window:Create("UIGradient", { Color = CP.hueSpectrum, Rotation = 90, Parent = self.hueBar })
-    self.hueHandle = self.window:Create("Frame", {
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        Position          = UDim2.new(0.5, 0, 0, 0),
-        Size              = UDim2.fromOffset(hueW + 8, 8),
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel   = 0,
-        ZIndex            = 4,
-        BackgroundTransparency = 1,
-        Parent            = self.hueBar,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = self.hueHandle })
-    self.hueHandleStroke = self.window:Create("UIStroke", {
-        Color = Color3.fromRGB(255,255,255), Thickness = 2, Transparency = 1, Parent = self.hueHandle
-    })
-    self.hueInteract = self.window:Create("TextButton", {
-        BackgroundTransparency = 1,
-        Size              = UDim2.new(1, 16, 1, 8),
-        Position          = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        Text              = "",
-        TextTransparency  = 1,
-        AutoButtonColor   = false,
-        ZIndex            = 6,
-        Parent            = self.hueBar,
-    })
-
-    -- Alpha bar
-    local alpW = CP.alphaBarW
-    self.alphaBar = self.window:Create("Frame", {
-        Position          = UDim2.fromOffset(CP.alphaBarX, CP.headerHeight),
-        Size              = UDim2.fromOffset(alpW, CP.mapSize.Y),
-        BackgroundColor3  = self.value,
-        BorderSizePixel   = 0,
-        ZIndex            = 2,
-        BackgroundTransparency = 1,
-        Parent            = self.main,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = self.alphaBar })
-    self.alphaGradient = self.window:Create("UIGradient", {
-        Rotation     = 90,
-        Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) },
-        Parent       = self.alphaBar,
-    })
-    self.alphaHandle = self.window:Create("Frame", {
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        Position          = UDim2.new(0.5, 0, 0, 0),
-        Size              = UDim2.fromOffset(alpW + 8, 8),
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel   = 0,
-        ZIndex            = 4,
-        BackgroundTransparency = 1,
-        Parent            = self.alphaBar,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = self.alphaHandle })
-    self.alphaHandleStroke = self.window:Create("UIStroke", {
-        Color = Color3.fromRGB(255,255,255), Thickness = 2, Transparency = 1, Parent = self.alphaHandle
-    })
-    self.alphaInteract = self.window:Create("TextButton", {
-        BackgroundTransparency = 1,
-        Size              = UDim2.new(1, 16, 1, 8),
-        Position          = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        Text              = "",
-        TextTransparency  = 1,
-        AutoButtonColor   = false,
-        ZIndex            = 6,
-        Parent            = self.alphaBar,
-    })
-
-    -- Hex input field
-    self.hexBox = self.window:Create("Frame", {
-        Position          = UDim2.new(0, CP.hexFieldX, 0, CP.headerHeight + 90),
-        Size              = UDim2.new(1, -(CP.hexFieldX + 20), 0, 30),
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel   = 0,
-        ZIndex            = 2,
-        BackgroundTransparency = 1,
-        Parent            = self.main,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = self.hexBox })
-    self.hexBoxStroke = self.window:Create("UIStroke", {
-        Color = Color3.fromRGB(255,255,255), Transparency = 1, Parent = self.hexBox
-    })
-    self.hexInput = self.window:Create("TextBox", {
-        Text              = "#" .. self.value:ToHex():upper(),
-        PlaceholderText   = "Smart Input",
-        Size              = UDim2.new(1, -14, 1, 0),
-        Position          = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 1,
-        BorderSizePixel   = 0,
-        TextSize          = 15,
-        TextXAlignment    = Enum.TextXAlignment.Center,
-        ClearTextOnFocus  = false,
-        ZIndex            = 3,
-        TextTransparency  = 1,
-        Parent            = self.hexBox,
-    }, { TextColor3 = "ContentColor", FontFace = "Font", PlaceholderColor3 = "PlaceholderColor" })
-
-    -- Alpha field
-    self.alphaBox = self.window:Create("Frame", {
-        Position          = UDim2.new(0, CP.hexFieldX, 0, CP.headerHeight + 90),
-        Size              = UDim2.fromOffset(CP.alphaFieldW, 30),
-        BackgroundColor3  = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel   = 0,
-        ZIndex            = 2,
-        BackgroundTransparency = 1,
-        Parent            = self.main,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = self.alphaBox })
-    self.alphaBoxStroke = self.window:Create("UIStroke", {
-        Color = Color3.fromRGB(255,255,255), Transparency = 1, Parent = self.alphaBox
-    })
-    self.alphaInput = self.window:Create("TextBox", {
-        Text              = tostring(math.round(self.alpha * 100)) .. "%",
-        PlaceholderText   = "100%",
-        Size              = UDim2.new(1, -10, 1, 0),
-        Position          = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint       = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 1,
-        BorderSizePixel   = 0,
-        TextSize          = 15,
-        TextXAlignment    = Enum.TextXAlignment.Center,
-        ClearTextOnFocus  = false,
-        ZIndex            = 3,
-        TextTransparency  = 1,
-        Parent            = self.alphaBox,
-    }, { TextColor3 = "ContentColor", FontFace = "Font", PlaceholderColor3 = "PlaceholderColor" })
-
-    -- Wire drag inputs
-    local function beginDragWhen(interact, channel)
-        self.window:ConnectFor(self, interact.InputBegan, function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-                self:_beginDrag(channel, input.UserInputType == Enum.UserInputType.MouseButton1)
-            end
-        end)
-    end
-    beginDragWhen(self.mapInteract,   "sat")
-    beginDragWhen(self.hueInteract,   "hue")
-    beginDragWhen(self.alphaInteract, "alpha")
-
-    local UIS = game:GetService("UserInputService")
-    self.window:ConnectFor(self, UIS.InputEnded, function(input)
-        if (input.UserInputType == Enum.UserInputType.MouseButton1
-        or  input.UserInputType == Enum.UserInputType.Touch)
-        and self._drag then
-            self:_endDrag()
-        end
-    end)
-
-    -- Hex field commit
-    self.window:ConnectFor(self, self.hexInput.FocusLost, function()
-        local parsed = parseColor(self.hexInput.Text)
-        if parsed then
-            self:Set(parsed)
-        else
-            self.hexInput.Text = "#" .. self.value:ToHex():upper()
-        end
-    end)
-
-    -- Alpha field commit
-    self.window:ConnectFor(self, self.alphaInput.FocusLost, function()
-        local num = tonumber((self.alphaInput.Text:gsub("[^%d%.]", "")))
-        if num then
-            self:SetAlpha(clamp01(num / 100))
-        else
-            self.alphaInput.Text = tostring(math.round(self.alpha * 100)) .. "%"
-        end
-    end)
-end
-
--- [F2] Swatches row
-function ColorPicker:_buildSwatches()
-    self.swatchRow = self.window:Create("Frame", {
-        Name              = "Swatches",
-        Size              = UDim2.new(1, -40, 0, 24),
-        Position          = UDim2.new(0, 20, 0, CP.headerHeight + CP.mapSize.Y + 130),
-        BackgroundTransparency = 1,
-        BorderSizePixel   = 0,
-        ZIndex            = 2,
-        Visible           = false,
-        Parent            = self.main,
-    })
-    self.window:Create("UIListLayout", {
-        FillDirection     = Enum.FillDirection.Horizontal,
-        VerticalAlignment = Enum.VerticalAlignment.Center,
-        Padding           = UDim.new(0, 6),
-        Parent            = self.swatchRow,
-    })
-
-    for _, color in self.swatches do
-        local swatch = self.window:Create("TextButton", {
-            Size              = UDim2.fromOffset(20, 20),
-            BackgroundColor3  = color,
-            BorderSizePixel   = 0,
-            Text              = "",
-            ZIndex            = 3,
-            Parent            = self.swatchRow,
-        })
-        self.window:Create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = swatch })
-        self.window:Create("UIStroke", {
-            Color = Color3.fromRGB(200, 200, 200), Transparency = 0.5, Parent = swatch
-        })
-        local capturedColor = color
-        self.window:Connect(swatch.MouseButton1Click, function()
-            self:Set(capturedColor)
-        end)
-    end
-
-    -- "Save current" swatch button
-    self.saveSwatch = self.window:Create("TextButton", {
-        Size              = UDim2.fromOffset(20, 20),
-        BackgroundColor3  = Color3.fromRGB(60, 60, 60),
-        BorderSizePixel   = 0,
-        Text              = "+",
-        TextColor3        = Color3.fromRGB(255, 255, 255),
-        TextSize          = 14,
-        ZIndex            = 3,
-        Parent            = self.swatchRow,
-    })
-    self.window:Create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = self.saveSwatch })
-    self.window:Connect(self.saveSwatch.MouseButton1Click, function()
-        -- Add a new swatch for current colour
-        local newColor = self.value
-        local swatch = self.window:Create("TextButton", {
-            Size              = UDim2.fromOffset(20, 20),
-            BackgroundColor3  = newColor,
-            BorderSizePixel   = 0,
-            Text              = "",
-            ZIndex            = 3,
-            Parent            = self.swatchRow,
-        })
-        self.window:Create("UICorner", { CornerRadius = UDim.new(0, 4), Parent = swatch })
-        self.window:Create("UIStroke", {
-            Color = Color3.fromRGB(200, 200, 200), Transparency = 0.5, Parent = swatch
-        })
-        local capturedColor = newColor
-        self.window:Connect(swatch.MouseButton1Click, function()
-            self:Set(capturedColor)
-        end)
-    end)
-end
-
--- [Fix #2] Drag — always disconnect stale connection first
-function ColorPicker:_beginDrag(channel, isMouse)
-    if not self._isOpen then return end
-    self._drag        = channel
-    self._dragIsMouse = isMouse
-    self:_setHeld(channel)
-    self:_pump()
-
-    -- [Fix #2] Disconnect before creating
-    if self._dragConnection then
-        self._dragConnection:Disconnect()
-        self._dragConnection = nil
-    end
-
-    local RS = game:GetService("RunService")
-    local UIS = game:GetService("UserInputService")
-    self._dragConnection = RS.RenderStepped:Connect(function()
-        local mouseReleased = self._dragIsMouse
-            and not UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
-        if self.window.unloaded or not self._drag or mouseReleased then
-            if mouseReleased then self:_endDrag() end
-            if self._dragConnection then
-                self._dragConnection:Disconnect()
-                self._dragConnection = nil
-            end
-            return
-        end
-        self:_pump()
-    end)
-end
-
-function ColorPicker:_endDrag()
-    self._drag = nil
-    self:_setHeld(nil)
-    if self._dragConnection then
-        self._dragConnection:Disconnect()
-        self._dragConnection = nil
-    end
-    self.window:_persist(self)
-end
-
-function ColorPicker:_setHeld(channel)
-    local hueW = CP.hueBarW
-    local alpW = CP.alphaBarW
-    local cursorSize  = channel == "sat"   and UDim2.fromOffset(16, 16) or UDim2.fromOffset(12, 12)
-    local hueSize     = channel == "hue"   and UDim2.fromOffset(hueW+12, 10) or UDim2.fromOffset(hueW+8, 8)
-    local alphaSize   = channel == "alpha" and UDim2.fromOffset(alpW+12, 10) or UDim2.fromOffset(alpW+8, 8)
-    local ts = game:GetService("TweenService")
-    ts:Create(self.satCursor,  TWEEN.held, { Size = cursorSize }):Play()
-    ts:Create(self.hueHandle,  TWEEN.held, { Size = hueSize    }):Play()
-    ts:Create(self.alphaHandle,TWEEN.held, { Size = alphaSize  }):Play()
-end
-
-function ColorPicker:_mouseLocation()
-    local UIS = game:GetService("UserInputService")
-    local pos = UIS:GetMouseLocation()
-    local sg  = self.window.screenGui
-    if sg and sg.IgnoreGuiInset then
-        return pos - game:GetService("GuiService"):GetGuiInset()
-    end
-    return pos
-end
-
--- [Fix #9, O3] Only recompute value when hue/sat/val changed; skip redundant tweens
-function ColorPicker:_pump()
-    local prevH, prevS, prevV, prevA = self.hue, self.sat, self.val, self.alpha
-
-    if self._drag == "sat" then
-        local sz = self.map.AbsoluteSize
-        if sz.X <= 0 or sz.Y <= 0 then return end
-        local mouse = self:_mouseLocation()
-        self.sat = clamp01((mouse.X - self.map.AbsolutePosition.X) / sz.X)
-        self.val = 1 - clamp01((mouse.Y - self.map.AbsolutePosition.Y) / sz.Y)
-    elseif self._drag == "hue" then
-        local sz = self.hueBar.AbsoluteSize.Y
-        if sz <= 0 then return end
-        local mouse = self:_mouseLocation()
-        self.hue = clamp01((mouse.Y - self.hueBar.AbsolutePosition.Y) / sz)
-    elseif self._drag == "alpha" then
-        local sz = self.alphaBar.AbsoluteSize.Y
-        if sz <= 0 then return end
-        local mouse = self:_mouseLocation()
-        self.alpha = 1 - clamp01((mouse.Y - self.alphaBar.AbsolutePosition.Y) / sz)
-    else
-        return
-    end
-
-    if self.hue == prevH and self.sat == prevS and self.val == prevV and self.alpha == prevA then return end
-
-    -- [Fix #9] Only recompute Color3 if hue/sat/val actually changed
-    if self.hue ~= prevH or self.sat ~= prevS or self.val ~= prevV then
-        self.value = Color3.fromHSV(self.hue, self.sat, self.val)
-    end
-
-    self:_render("drag")
-    self:_fireCallback()
-end
-
--- [O3] Skip tweens for unchanged values
-function ColorPicker:_render(mode)
-    local ts        = game:GetService("TweenService")
-    local hueColor  = Color3.fromHSV(self.hue, 1, 1)
-    local cursorPos = UDim2.new(self.sat, 0, 1 - self.val, 0)
-    local huePos    = UDim2.new(0.5, 0, self.hue, 0)
-    local alphaPos  = UDim2.new(0.5, 0, 1 - self.alpha, 0)
-    local alphaTransp = 1 - self.alpha
-    local shadowTransp = 1 - 0.4 * self.alpha
-
-    local lr = self._lastRender
-
-    if mode == "instant" then
-        self.map.BackgroundColor3           = hueColor
-        self.satCursor.Position             = cursorPos
-        self.satCursor.BackgroundColor3     = self.value
-        self.hueHandle.Position             = huePos
-        self.hueHandle.BackgroundColor3     = hueColor
-        self.alphaBar.BackgroundColor3      = self.value
-        self.alphaHandle.Position           = alphaPos
-        self.alphaHandle.BackgroundColor3   = self.value
-        self.preview.BackgroundColor3       = self.value
-        self.previewShadow.Color            = self.value
-        if not self.window.hidden then
-            self.preview.BackgroundTransparency = alphaTransp
-            self.previewShadow.Transparency     = shadowTransp
-        end
-    else
-        local tweenInfo = mode == "drag" and TWEEN.fast or TWEEN.animate  -- [O1]
-
-        -- [O3] Only tween what actually changed
-        if self.hue ~= lr.hue or self.sat ~= lr.sat or self.val ~= lr.val then
-            ts:Create(self.map,       tweenInfo, { BackgroundColor3 = hueColor }):Play()
-            ts:Create(self.satCursor, tweenInfo, { Position = cursorPos, BackgroundColor3 = self.value }):Play()
-            ts:Create(self.hueHandle, tweenInfo, { Position = huePos,    BackgroundColor3 = hueColor   }):Play()
-            ts:Create(self.alphaBar,  TWEEN.animate, { BackgroundColor3 = self.value }):Play()
-            ts:Create(self.alphaHandle, tweenInfo, { BackgroundColor3 = self.value }):Play()
-            local previewGoal = { BackgroundColor3 = self.value }
-            local shadowGoal  = { Color = self.value }
-            if not self.window.hidden then
-                previewGoal.BackgroundTransparency = alphaTransp
-                shadowGoal.Transparency            = shadowTransp
-            end
-            ts:Create(self.preview,       TWEEN.animate, previewGoal):Play()
-            ts:Create(self.previewShadow, TWEEN.animate, shadowGoal):Play()
-        elseif self.alpha ~= lr.alpha then
-            -- Only alpha changed — just update alpha handle + preview transparency
-            ts:Create(self.alphaHandle, tweenInfo, { Position = alphaPos }):Play()
-            if not self.window.hidden then
-                ts:Create(self.preview,       TWEEN.fast, { BackgroundTransparency = alphaTransp }):Play()
-                ts:Create(self.previewShadow, TWEEN.fast, { Transparency = shadowTransp }):Play()
-            end
-        end
-    end
-
-    -- Update text fields if not focused
-    if not self.hexInput:IsFocused() then
-        self.hexInput.Text = "#" .. self.value:ToHex():upper()
-    end
-    if not self.alphaInput:IsFocused() then
-        self.alphaInput.Text = tostring(math.round(self.alpha * 100)) .. "%"
-    end
-
-    -- Cache for next frame  [O3]
-    lr.hue   = self.hue
-    lr.sat   = self.sat
-    lr.val   = self.val
-    lr.alpha = self.alpha
-
-    self:_renderInvisible(mode ~= "instant")
-end
-
-function ColorPicker:_renderInvisible(animate)
-    local visibility = 0
-    if self._isOpen and not self.window.hidden then
-        visibility = clamp01((0.12 - self.alpha) / 0.12)
-    end
-    local textTransp = 1 - visibility
-    local ts = game:GetService("TweenService")
-    if animate then
-        ts:Create(self.invisibleText, TWEEN.hover, { TextTransparency = textTransp }):Play()
-    else
-        self.invisibleText.TextTransparency = textTransp
-    end
-end
-
-function ColorPicker:_fireCallback()
-    self.window:_runGuarded(self, self.callback, self.value, self.alpha)
-end
-
--- [Fix #3, F7]
-function ColorPicker:_open()
-    if self._isOpen then return end
-    self._isOpen = true
-    self.swatchRow.Visible = true  -- [F2]
-
-    if self.onOpen then
-        task.spawn(self.onOpen, self.value, self.alpha)  -- [F7]
-    end
-
-    self:_setControlsVisible(true)
-
-    -- [Fix #3] Always disconnect before potentially reconnecting
-    if self._outsideClickConn then
-        self.window:Disconnect(self._outsideClickConn)
-        self._outsideClickConn = nil
-    end
-
-    local UIS = game:GetService("UserInputService")
-    self._outsideClickConn = self.window:Connect(UIS.InputBegan, function(input)
-        if input.UserInputType ~= Enum.UserInputType.MouseButton1
-        and input.UserInputType ~= Enum.UserInputType.Touch then return end
-        local pos  = input.Position
-        local mPos = self.main.AbsolutePosition
-        local mSz  = self.main.AbsoluteSize
-        if pos.X < mPos.X or pos.X > mPos.X + mSz.X
-        or pos.Y < mPos.Y or pos.Y > mPos.Y + mSz.Y then
-            self:_close()
-        end
-    end)
-
-    local ts = game:GetService("TweenService")
-    ts:Create(self.main,    TWEEN.open, { Size     = UDim2.new(1, -20, 0, self._openHeight) }):Play()
-    ts:Create(self.preview, TWEEN.open, { Position = self._previewOpenPos, Size = self._previewOpenSize }):Play()
-    self:_applyPickerVisibility(true, true)
-    self:_renderInvisible(true)
-end
-
--- [Fix #4, F7]
-function ColorPicker:_close()
-    if not self._isOpen then return end
-    self._isOpen = false
-    self.swatchRow.Visible = false  -- [F2]
-
-    if self.onClose then
-        task.spawn(self.onClose, self.value, self.alpha)  -- [F7]
-    end
-
-    -- [Fix #3]
-    if self._outsideClickConn then
-        self.window:Disconnect(self._outsideClickConn)
-        self._outsideClickConn = nil
-    end
-
-    if self._drag then self:_endDrag() end
-    if self.hexInput:IsFocused()   then self.hexInput:ReleaseFocus()   end
-    if self.alphaInput:IsFocused() then self.alphaInput:ReleaseFocus() end
-
-    self:_applyPickerVisibility(false, true)
-    self:_renderInvisible(true)
-
-    local ts = game:GetService("TweenService")
-    local previewDefaultPos  = UDim2.new(1, -16, 0, CP.headerHeight / 2)
-    local previewDefaultSize = UDim2.fromOffset(40, 22)
-    ts:Create(self.preview, TWEEN.open, { Position = previewDefaultPos, Size = previewDefaultSize }):Play()
-    ts:Create(self.main,    TWEEN.open, { Size     = UDim2.new(1, -20, 0, CP.elemHeight) }):Play()
-
-    -- [Fix #4] Capture isOpen state at closure time
-    local closedAtThisCall = self._isOpen  -- false right now
-    task.delay(TWEEN.hover.Time, function()
-        -- guard: don't hide controls if re-opened during the delay
-        if self._isOpen == closedAtThisCall then
-            self:_setControlsVisible(false)
-        end
-    end)
-end
-
--- [O2] Build visibility tables once; patch values per call
-local function makeVisTable(picker, open)
-    local o, t = open and 0 or 1, open and 1 or 0  -- transparency values
-    return {
-        [picker.map]              = { BackgroundTransparency = o },
-        [picker.satOverlay]       = { BackgroundTransparency = o },
-        [picker.valOverlay]       = { BackgroundTransparency = o },
-        [picker.mapStroke]        = { Transparency           = open and 0.9 or 1 },
-        [picker.satCursor]        = { BackgroundTransparency = o },
-        [picker.satCursorStroke]  = { Transparency           = t },
-        [picker.hueBar]           = { BackgroundTransparency = o },
-        [picker.hueHandle]        = { BackgroundTransparency = o },
-        [picker.hueHandleStroke]  = { Transparency           = t },
-        [picker.alphaBar]         = { BackgroundTransparency = o },
-        [picker.alphaHandle]      = { BackgroundTransparency = o },
-        [picker.alphaHandleStroke]= { Transparency           = t },
-        [picker.hexBox]           = { BackgroundTransparency = open and 0.9 or 1 },
-        [picker.hexBoxStroke]     = { Transparency           = open and 0.85 or 1 },
-        [picker.hexInput]         = { TextTransparency       = open and 0.4 or 1 },
-        [picker.alphaBox]         = { BackgroundTransparency = open and 0.9 or 1 },
-        [picker.alphaBoxStroke]   = { Transparency           = open and 0.85 or 1 },
-        [picker.alphaInput]       = { TextTransparency       = open and 0.4 or 1 },
-    }
-end
-
-function ColorPicker:_applyPickerVisibility(open, animate)
-    local targets = makeVisTable(self, open)
-    local ts = game:GetService("TweenService")
-    for inst, props in targets do
-        if animate then
-            ts:Create(inst, TWEEN.hover, props):Play()
-        else
-            for k, v in props do inst[k] = v end
-        end
-    end
-end
-
-function ColorPicker:_setControlsVisible(visible)
-    for _, inst in {self.map, self.hueBar, self.alphaBar, self.hexBox, self.alphaBox} do
-        inst.Visible = visible
-    end
-    if self.swatchRow then self.swatchRow.Visible = visible end
-end
-
-function ColorPicker:_applyLayout()
-    local width = self.main.AbsoluteSize.X
-    local mode  = (width > 0 and width < CP.elemHeight) and "narrow" or "wide"
-    if mode == self._layoutMode then return end
-    self._layoutMode     = mode
-    local layout         = LAYOUT[mode]
-    self._openHeight     = layout.height
-    self._previewOpenPos = layout.previewPos
-    self._previewOpenSize= layout.previewSize
-    self.hexBox.Position = layout.hexPos
-    self.hexBox.Size     = layout.hexSize
-    self.alphaBox.Position = layout.alphaPos
-    self.alphaBox.Size   = layout.alphaSize
-
-    if self._isOpen then
-        local ts = game:GetService("TweenService")
-        ts:Create(self.main,    TWEEN.open, { Size     = UDim2.new(1, -20, 0, self._openHeight) }):Play()
-        ts:Create(self.preview, TWEEN.open, { Position = self._previewOpenPos, Size = self._previewOpenSize }):Play()
-    end
-end
-
--- Public API
-function ColorPicker:Set(color, silent)
-    self.value = resolveColor(color, self.value)
-    self.hue, self.sat, self.val = self.value:ToHSV()
-    self:_render(self._isOpen and "animate" or "instant")
-    if not silent then
-        self:_fireCallback()
-        self.window:_persist(self)
-    end
-end
-
-function ColorPicker:SetAlpha(alpha, silent)
-    self.alpha = clamp01(type(alpha) == "number" and alpha or self.alpha)
-    self:_render(self._isOpen and "animate" or "instant")
-    if not silent then
-        self:_fireCallback()
-        self.window:_persist(self)
-    end
-end
-
-function ColorPicker:_serialize()
-    return self.value:ToHex() .. string.format("%02x", math.clamp(math.round((self.alpha or 1) * 255), 0, 255))
-end
-
-function ColorPicker:_deserialize(data)
-    local s = tostring(data)
-    local alpha
-    if #s >= 8 then
-        alpha = (tonumber(s:sub(7, 8), 16) or 255) / 255
-        s = s:sub(1, 6)
-    end
-    local ok, color = pcall(Color3.fromHex, s)
-    if not ok then return end
-    if alpha then self:SetAlpha(alpha, true) end
-    self:Set(color)
-end
-
-function ColorPicker:_setShown(visible, tweenInfo)
-    local win = self.window
-    if visible then
-        win:_revealCommon(self, tweenInfo)
-        win:_reveal(self.preview,       { BackgroundTransparency = 1 - self.alpha }, tweenInfo)
-        win:_reveal(self.previewShadow, { Transparency           = 1 - 0.4 * self.alpha }, tweenInfo)
-    else
-        win:_hideCommon(self, tweenInfo)
-        win:_reveal(self.preview,       { BackgroundTransparency = 1 }, tweenInfo)
-        win:_reveal(self.previewShadow, { Transparency           = 1 }, tweenInfo)
-        if self._isOpen then self:_close() end
-    end
-end
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 7 : MAIN KEOIRN MODULE  (F5, F6)
--- ──────────────────────────────────────────────────────────────────
-
-
--- ──────────────────────────────────────────────────────────────────
--- SECTION 3 : KEOIRN GEN2 INTERFACE & WINDOW WRAPPER
--- ──────────────────────────────────────────────────────────────────
-local Keoirn = {}
-Keoirn.__index = Keoirn
-Keoirn.Version = "1.2.0-gen2"
-
-local _windows = setmetatable({}, { __mode = "v" })
-
-function Keoirn.CreateWindow(self, props)
-    if type(self) ~= "table" or (self ~= Keoirn and getmetatable(self) ~= Keoirn) then
-        props = self
-    end
-    props = props or {}
-
-    -- Ensure window title and config folder match Keoirn convention
-    local win = Gen2Core:CreateWindow(props)
-    if not win then return nil end
-
-    -- [F4] Action component integration
-    function win:CreateAction(actProps)
-        return Action.new(win, actProps)
-    end
-
-    -- Flags access helper
-    function win:GetFlags()
-        local result = {}
-        if win.controls then
-            for flag, ctrl in pairs(win.controls) do
-                if ctrl and ctrl.value ~= nil then
-                    result[flag] = ctrl.value
-                end
-            end
-        end
-        return result
-    end
-
-    function win:GetFlag(flag)
-        if win.controls and win.controls[flag] then
-            return win.controls[flag].value
-        end
-        if win.Flags then
-            return win.Flags[flag]
-        end
-        return nil
-    end
-
-    -- Wrap CreateTab so enhanced Button and ColorPicker can be used
-    local origCreateTab = win.CreateTab
-    function win:CreateTab(tabProps)
-        local tab = origCreateTab(win, tabProps)
-        if not tab then return nil end
-
-        local origCreateButton = tab.CreateButton
-        function tab:CreateButton(btnProps)
-            btnProps = btnProps or {}
-            -- If caller provides disabled, cooldown, or custom enhancements, use enhanced Button
-            if btnProps.disabled ~= nil or btnProps.Disabled ~= nil or btnProps.cooldown or btnProps.Cooldown then
-                return Button.new(tab, btnProps)
-            end
-            local ok, b = pcall(origCreateButton, tab, btnProps)
-            if ok and b then return b end
-            return Button.new(tab, btnProps)
-        end
-
-        local origCreateColorPicker = tab.CreateColorPicker
-        function tab:CreateColorPicker(cpProps)
-            cpProps = cpProps or {}
-            if cpProps.swatches or cpProps.Swatches or cpProps.onOpen or cpProps.OnOpen or cpProps.onClose or cpProps.OnClose then
-                return ColorPicker.new(tab, cpProps)
-            end
-            local ok, cp = pcall(origCreateColorPicker, tab, cpProps)
-            if ok and cp then return cp end
-            return ColorPicker.new(tab, cpProps)
-        end
-
-        function tab:CreateSwitch(swProps)
-            return tab:CreateToggle(swProps)
-        end
-
-        return tab
-    end
-
-    table.insert(_windows, win)
-    return win
-end
-
-function Keoirn:CreateWindow(props)
-    return Keoirn.CreateWindow(Keoirn, props)
-end
-
--- [F5] Global Destroy
-function Keoirn.Destroy()
-    for _, win in ipairs(_windows) do
-        if win and not win.unloaded then
-            pcall(function()
-                if win.Destroy then
-                    win:Destroy()
-                elseif win.Unload then
-                    win:Unload()
-                end
-            end)
-        end
-    end
-    table.clear(_windows)
-end
-
-return Keoirn
